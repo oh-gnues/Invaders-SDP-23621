@@ -8,10 +8,10 @@ This IC-PBL course project extends and improves the Java [Space Invaders](https:
 
 Register your team by adding one row to the table below and submitting the change through a pull request.
 
-* In the **Name** column, link to your team's fork of this repository.
-* In the **Members** column, link each team member to their GitHub profile.
-* In the **Requirements** column, link to your team's document in the `teams/` directory, such as `teams/Instructors.md`.
-* Name the team document `teams/<team_name>.md`. Include the team introduction and member roles, the overall requirements assigned to the team, at least five detailed requirements, and up to three dependencies on other teams.
+- In the **Name** column, link to your team's fork of this repository.
+- In the **Members** column, link each team member to their GitHub profile.
+- In the **Requirements** column, link to your team's document in the `teams/` directory, such as `teams/Instructors.md`.
+- Name the team document `teams/<team_name>.md`. Include the team introduction and member roles, the overall requirements assigned to the team, at least five detailed requirements, and up to three dependencies on other teams.
 
 | No. | Name                                   | Members                                                                                                                                                                                                                               | Requirements                                             |
 |----:|----------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------|
@@ -20,8 +20,8 @@ Register your team by adding one row to the table below and submitting the chang
 | 2 | [A1](https://github.com/calzsvg/A1) | [Shin Hui Lee](https://github.com/illtr), [Hoyoung Yoon](https://github.com/calzsvg), [Minju Kang](https://github.com/kitxk1102), [Naman](https://github.com/ExotizZn), [Siyoung Park](https://github.com/athic06), [Seunghyun Moon](https://github.com/hysh144), [Yeonwoo Choi](https://github.com/Happy623623), [Christian Villarreal](https://github.com/chrisune07), [Nacim](https://github.com/Nacim20) | [Player & Enemy Ship Variety](teams/A1.md#team-requirements) |
 | 3 | [GOG](https://github.com/wamos0922/Invaders-SDP-23621-CurrencySystem) | [Haikal Fiqri](https://github.com/haikalfiqri), [Ikhwan Zarif](https://github.com/wamos0922), [Nik Ammar](https://github.com/nikmar9705), [Zarith Imran](https://github.com/zeth-ux),[Wafi](https://github.com/wafisapuan), [Muizzuddin](https://github.com/mfuizz), [Aqil Amani](https://github.com/Soy05), [Asyrafuddin](https://github.com/asyrafuddin), [Akip](https://github.com/abangBoy13) | [Currency System](teams/GoG.md#responsibilities) |
 | 4 | [ECE](teams/ECE.md) | Maxence Morcillo *(Team Leader — GitHub: TODO)*, [Thomas Duval](https://github.com/TraderX-2) *(UI/Overlay)*, [Thomas Favre](https://github.com/fvpok) *(QA/Tester)*, [Hugo Fedoroff](https://github.com/Hugofedoroff) *(HUD Developer — Score and Lives)*, [Roch Le Pere De Graveron](https://github.com/Rochdgrvrn) *(Dependency Integration)*, [Robin Sénéchal](https://github.com/Robins%C3%A8ne) *(Documentation and Communication)*, [Eliott Siquier](https://github.com/eliottlemaxibg) *(HUD Developer — Level and Weapon/Power-up)*, [Ghali Benharbit](https://github.com/GhaliBenh) *(Gameplay Integration)* | [Gameplay HUD](teams/ECE.md#team-requirements) |
-| 5 | [Team CS](teams/team-cs.md) | [SonDongYeol](https://github.com/playlistSDY), [HanJaeHyuk](https://github.com/doha1208), [Choseonggil](https://github.com/ancho040220), [Choi Jian](https://github.com/choichoi10), [Choigeonhee](https://github.com/choigeonhee2025), [Kim JiHo](https://github.com/GTMBB), [KimHyunChan](https://github.com/whitson1117), [ChoiGiMin](https://github.com/zPHf25N), [KimHanGyeol](https://github.com/han31415920512) | [Item System](teams/team-cs.md)
-
+| 5 | [KFC](https://github.com/1322528197ldy-tech/KFC-Invaders-SDP-23621) | [이동원](https://github.com/1322528197ldy-tech), [류동희](https://github.com/d0nghee09), [Jeremie GABOVICH](https://github.com/jereme26), [박성현](https://github.com/psh0709), [장윤수](https://github.com/yoonsoo1007), [진자영](https://github.com/Cedric0716), [사호철](https://github.com/hxie2137), [김동정](https://github.com/Jdz1128) | [Level Design System](teams/KFC.md) |
+| 6 | [Team CS](teams/team-cs.md) | [SonDongYeol](https://github.com/playlistSDY), [HanJaeHyuk](https://github.com/doha1208), [Choseonggil](https://github.com/ancho040220), [Choi Jian](https://github.com/choichoi10), [Choigeonhee](https://github.com/choigeonhee2025), [Kim JiHo](https://github.com/GTMBB), [KimHyunChan](https://github.com/whitson1117), [ChoiGiMin](https://github.com/zPHf25N), [KimHanGyeol](https://github.com/han31415920512) | [Item System](teams/team-cs.md)
 ## Screenshots
 
 | Title Screen | Game Screen | Score Screen |
@@ -30,12 +30,15 @@ Register your team by adding one row to the table below and submitting the chang
 
 ## Development
 
-* Recommended IDE: IntelliJ IDEA
-* Runtime requirement inherited from the upstream project: Java 7 or later
-* Before implementing a feature, build and run the baseline game and analyze the relevant source code.
+- Recommended IDE: IntelliJ IDEA
+- Runtime requirement inherited from the upstream project: Java 7 or later
+- Before implementing a feature, build and run the baseline game and analyze the relevant source code.
 
 ## Attribution and Licensing
 
 This course project is based on [RobertoIA/Invaders](https://github.com/RobertoIA/Invaders). The upstream repository does not currently declare an open-source license. This repository therefore does not assert a new open-source license over the upstream code or third-party assets. Any permission or licensing terms confirmed by the relevant rights holders should be documented here before redistribution beyond the permissions provided through GitHub.
+
+The upstream README references the Space Invaders Regular font by kylemaoin. Verify the font and other asset licenses separately before bundling or redistributing them.
+
 
 The upstream README references the Space Invaders Regular font by kylemaoin. Verify the font and other asset licenses separately before bundling or redistributing them.
