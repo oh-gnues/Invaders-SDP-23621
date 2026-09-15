@@ -13,7 +13,6 @@ Register your team by adding one row to the table below and submitting the chang
 * In the **Requirements** column, link to your team's document in the `teams/` directory, such as `teams/Instructors.md`.
 * Name the team document `teams/<team_name>.md`. Include the team introduction and member roles, the overall requirements assigned to the team, at least five detailed requirements, and up to three dependencies on other teams.
 
-<<<<<<< HEAD
 | No. | Name                                   | Members                                                                                                                                                                                                                               | Requirements                                             |
 |----:|----------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------|
 |   0 | [Instructors](teams/Instructors.md)    | [Scott Uk-Jin Lee](https://github.com/scottukjinlee/scottukjinlee), [Seungho Kim](https://github.com/oh-gnues/oh-gnues), [Elkarmy Salma](https://github.com/salma5-cpu), [Eric Zhang](https://github.com/Eric-Zhang37)                | [Course guidance](teams/Instructors.md#responsibilities) |
