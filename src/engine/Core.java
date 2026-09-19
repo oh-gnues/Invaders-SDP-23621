@@ -12,6 +12,9 @@ import screen.GameScreen;
 import screen.HighScoreScreen;
 import screen.ScoreScreen;
 import screen.Screen;
+import screen.SettingsScreen;
+import screen.ShopScreen;
+import screen.ShipSelectScreen;
 import screen.TitleScreen;
 
 /**
@@ -172,7 +175,36 @@ public final class Core {
 				returnCode = frame.setScreen(currentScreen);
 				LOGGER.info("Closing high score screen.");
 				break;
+			case 4:
+				// Settings UI
+				currentScreen = new SettingsScreen(width, height, FPS);
+				LOGGER.info("Starting " + WIDTH + "x" + HEIGHT
+						+ " settings screen at " + FPS + " fps.");
+				returnCode = frame.setScreen(currentScreen);
+				LOGGER.info("Closing settings screen.");
+				break;
+			case 5:
+				// Shop.
+				currentScreen = new ShopScreen(width, height, FPS);
+				LOGGER.info("Starting " + WIDTH + "x" + HEIGHT
+						+ " shop screen at " + FPS + " fps.");
+				returnCode = frame.setScreen(currentScreen);
+				LOGGER.info("Closing shop screen.");
+				break;
+			case 7:
+				// Ship select.
+				currentScreen = new ShipSelectScreen(width, height, FPS);
+				LOGGER.info("Starting " + WIDTH + "x" + HEIGHT
+						+ " ship select screen at " + FPS + " fps.");
+				returnCode = frame.setScreen(currentScreen);
+				LOGGER.info("Closing ship select screen.");
+				break;
 			default:
+				// No screen for this code yet - back to the menu instead of
+				// spinning in this loop forever.
+				LOGGER.warning("Unknown return code " + returnCode
+						+ ", returning to the main menu.");
+				returnCode = 1;
 				break;
 			}
 
