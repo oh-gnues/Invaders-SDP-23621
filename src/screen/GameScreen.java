@@ -4,13 +4,16 @@ import java.awt.event.KeyEvent;
 import java.util.HashSet;
 import java.util.Set;
 
+import engine.CoinDropManager;
 import engine.Cooldown;
 import engine.Core;
+import engine.CurrencyManager;
 import engine.GameSettings;
 import engine.GameState;
-import engine.Achievement;
 import entity.Bullet;
 import entity.BulletPool;
+import entity.Coin;
+import entity.CoinPool;
 import entity.EnemyShip;
 import entity.EnemyShipFormation;
 import entity.Entity;
@@ -36,8 +39,6 @@ public class GameScreen extends Screen {
 	private static final int BONUS_SHIP_EXPLOSION = 500;
 	/** Time from finishing the level to screen change. */
 	private static final int SCREEN_CHANGE_INTERVAL = 1500;
-	/** How long an achievement unlock popup remains visible. */
-	private static final int ACHIEVEMENT_POPUP_INTERVAL = 3000;
 	/** Height of the interface separation line. */
 	private static final int SEPARATION_LINE_HEIGHT = 40;
 
@@ -57,12 +58,14 @@ public class GameScreen extends Screen {
 	private Cooldown enemyShipSpecialExplosionCooldown;
 	/** Time from finishing the level to screen change. */
 	private Cooldown screenFinishedCooldown;
-	/** Time until the achievement unlock popup closes. */
-	private Cooldown achievementPopupCooldown;
-	/** Achievement currently shown in the unlock popup. */
-	private Achievement unlockedAchievement;
 	/** Set of all bullets fired by on screen ships. */
 	private Set<Bullet> bullets;
+	/** Set of coins currently dropped and falling on screen. */
+	private Set<Coin> coins;
+	/** Decides, with a low, configurable chance, whether a kill drops a
+	 * coin. Kept a chance instead of a guaranteed drop so currency income
+	 * doesn't scale 1:1 with kills and blow up the game's economy. */
+	private CoinDropManager coinDropManager;
 	/** Current score. */
 	private int score;
 	/** Player lives left. */
@@ -126,9 +129,9 @@ public class GameScreen extends Screen {
 		this.enemyShipSpecialExplosionCooldown = Core
 				.getCooldown(BONUS_SHIP_EXPLOSION);
 		this.screenFinishedCooldown = Core.getCooldown(SCREEN_CHANGE_INTERVAL);
-		this.achievementPopupCooldown = Core.getCooldown(
-				ACHIEVEMENT_POPUP_INTERVAL);
 		this.bullets = new HashSet<Bullet>();
+		this.coins = new HashSet<Coin>();
+		this.coinDropManager = new CoinDropManager();
 
 		// Special input delay / countdown.
 		this.gameStartTime = System.currentTimeMillis();
@@ -205,6 +208,7 @@ public class GameScreen extends Screen {
 		}
 
 		manageCollisions();
+		updateCoins();
 		cleanBullets();
 		draw();
 
@@ -238,15 +242,14 @@ public class GameScreen extends Screen {
 			drawManager.drawEntity(bullet, bullet.getPositionX(),
 					bullet.getPositionY());
 
+		for (Coin coin : this.coins)
+			drawManager.drawCoin(coin, coin.getPositionX(),
+					coin.getPositionY());
+
 		// Interface.
 		drawManager.drawScore(this, this.score);
 		drawManager.drawLives(this, this.lives);
 		drawManager.drawHorizontalLine(this, SEPARATION_LINE_HEIGHT - 1);
-		if (this.unlockedAchievement != null) {
-			drawManager.drawAchievementUnlocked(this, this.unlockedAchievement);
-			if (this.achievementPopupCooldown.checkFinished())
-				this.unlockedAchievement = null;
-		}
 
 		// Countdown to game start.
 		if (!this.inputDelay.checkFinished()) {
@@ -302,8 +305,7 @@ public class GameScreen extends Screen {
 						this.score += enemyShip.getPointValue();
 						this.shipsDestroyed++;
 						this.enemyShipFormation.destroy(enemyShip);
-						showUnlockedAchievement(Core.getAchievementManager()
-								.recordEnemyDefeated());
+						maybeDropCoin(enemyShip);
 						recyclable.add(bullet);
 					}
 				if (this.enemyShipSpecial != null
@@ -312,9 +314,8 @@ public class GameScreen extends Screen {
 					this.score += this.enemyShipSpecial.getPointValue();
 					this.shipsDestroyed++;
 					this.enemyShipSpecial.destroy();
-					showUnlockedAchievement(Core.getAchievementManager()
-							.recordEnemyDefeated());
 					this.enemyShipSpecialExplosionCooldown.reset();
+					maybeDropCoin(this.enemyShipSpecial);
 					recyclable.add(bullet);
 				}
 			}
@@ -323,15 +324,44 @@ public class GameScreen extends Screen {
 	}
 
 	/**
-	 * Displays a popup when an enemy defeat unlocks an achievement.
-	 *
-	 * @param achievement Newly unlocked achievement, if any.
+	 * Rolls the coin-drop chance for a just-destroyed enemy and, if it
+	 * succeeds, spawns a coin at its position. A coin does not drop on
+	 * every kill on purpose: see {@link CoinDropManager} for why.
+	 * 
+	 * @param destroyedEnemy
+	 *            Enemy ship that was just destroyed.
 	 */
-	private void showUnlockedAchievement(final Achievement achievement) {
-		if (achievement != null) {
-			this.unlockedAchievement = achievement;
-			this.achievementPopupCooldown.reset();
+	private void maybeDropCoin(final EnemyShip destroyedEnemy) {
+		if (this.coinDropManager.rollForDrop())
+			this.coins.add(CoinPool.getCoin(
+					destroyedEnemy.getPositionX()
+							+ destroyedEnemy.getWidth() / 2,
+					destroyedEnemy.getPositionY()
+							+ destroyedEnemy.getHeight() / 2,
+					1));
+	}
+
+	/**
+	 * Moves falling coins, hands collected coins to the CurrencyManager,
+	 * and recycles coins that reach the bottom of the screen uncollected.
+	 */
+	private void updateCoins() {
+		Set<Coin> recyclable = new HashSet<Coin>();
+		for (Coin coin : this.coins) {
+			coin.update();
+
+			if (!this.levelFinished && !this.ship.isDestroyed()
+					&& checkCollision(coin, this.ship)) {
+				CurrencyManager.getInstance().addCoins(coin.getValue());
+				recyclable.add(coin);
+				this.logger.info("Coin collected, balance: "
+						+ CurrencyManager.getInstance().getCoins());
+			} else if (coin.getPositionY() > this.height) {
+				recyclable.add(coin);
+			}
 		}
+		this.coins.removeAll(recyclable);
+		CoinPool.recycle(recyclable);
 	}
 
 	/**
