@@ -78,8 +78,8 @@ public final class DrawManager {
 		EnemyShipSpecial,
 		/** Destroyed enemy ship. */
 		Explosion,
-		/** Achievement trophy icon. */
-		Trophy
+		/** First Flight achievement icon. */
+		FirstFlight
 	};
 
 	/**
@@ -105,7 +105,7 @@ public final class DrawManager {
 			spriteMap.put(SpriteType.EnemyShipC2, new boolean[12][8]);
 			spriteMap.put(SpriteType.EnemyShipSpecial, new boolean[16][7]);
 			spriteMap.put(SpriteType.Explosion, new boolean[13][7]);
-			spriteMap.put(SpriteType.Trophy, new boolean[11][8]);
+			spriteMap.put(SpriteType.FirstFlight, new boolean[11][8]);
 
 			fileManager.loadSprite(spriteMap);
 			logger.info("Finished loading the sprites.");
@@ -195,34 +195,28 @@ public final class DrawManager {
 	 */
 	public void drawEntity(final Entity entity, final int positionX,
 			final int positionY) {
-		boolean[][] image = spriteMap.get(entity.getSpriteType());
-
-		backBufferGraphics.setColor(entity.getColor());
-		for (int i = 0; i < image.length; i++)
-			for (int j = 0; j < image[i].length; j++)
-				if (image[i][j])
-					backBufferGraphics.drawRect(positionX + i * 2, positionY
-							+ j * 2, 1, 1);
+		drawSprite(entity.getSpriteType(), positionX, positionY,
+				entity.getColor());
 	}
 
 	/**
-	 * Draws a sprite directly, without needing an Entity.
+	 * Draws a sprite using the game's standard two-pixel scale.
 	 *
-	 * @param type      Sprite to draw.
-	 * @param positionX Horizontal position of the left edge.
-	 * @param positionY Vertical position of the top edge.
-	 * @param color     Colour of the sprite.
+	 * @param spriteType Sprite to draw.
+	 * @param positionX Coordinates for the left side of the image.
+	 * @param positionY Coordinates for the upper side of the image.
+	 * @param color Color used for filled pixels.
 	 */
-	public void drawSprite(final SpriteType type, final int positionX,
+	public void drawSprite(final SpriteType spriteType, final int positionX,
 			final int positionY, final Color color) {
-		boolean[][] image = spriteMap.get(type);
+		boolean[][] image = spriteMap.get(spriteType);
 
 		backBufferGraphics.setColor(color);
 		for (int i = 0; i < image.length; i++)
 			for (int j = 0; j < image[i].length; j++)
 				if (image[i][j])
-					backBufferGraphics.drawRect(positionX + i * 2,
-							positionY + j * 2, 1, 1);
+					backBufferGraphics.drawRect(positionX + i * 2, positionY
+							+ j * 2, 1, 1);
 	}
 
 	/**
@@ -580,24 +574,59 @@ public final class DrawManager {
 	 *
 	 * @param screen Screen where the popup is drawn.
 	 * @param achievement Newly unlocked achievement.
+	 * @param shipPositionX Horizontal position of the player ship.
+	 * @param shipPositionY Vertical position of the player ship.
+	 * @param shipWidth Width of the player ship.
 	 */
 	public void drawAchievementUnlocked(final Screen screen,
-			final Achievement achievement) {
-		int boxWidth = screen.getWidth() / 2;
-		int boxHeight = fontRegularMetrics.getHeight() * 3;
-		int boxX = (screen.getWidth() - boxWidth) / 2;
-		int boxY = screen.getHeight() - boxHeight
-				- fontRegularMetrics.getHeight();
+			final Achievement achievement, final int shipPositionX,
+			final int shipPositionY, final int shipWidth) {
+		int boxWidth = 148;
+		int boxHeight = 68;
+		int boxX = shipPositionX + shipWidth / 2 - boxWidth / 2;
+		int boxY = shipPositionY - boxHeight - 6;
+		boxX = Math.max(6, Math.min(boxX, screen.getWidth() - boxWidth - 6));
 
 		backBufferGraphics.setColor(Color.BLACK);
 		backBufferGraphics.fillRect(boxX, boxY, boxWidth, boxHeight);
 		backBufferGraphics.setColor(Color.GREEN);
 		backBufferGraphics.drawRect(boxX, boxY, boxWidth, boxHeight);
-		drawCenteredRegularString(screen, "Achievement unlocked!", boxY
-				+ fontRegularMetrics.getHeight() * 3 / 2);
+		backBufferGraphics.setColor(Color.GREEN);
+		backBufferGraphics.drawString("New Achievement!", boxX + (boxWidth
+				- fontRegularMetrics.stringWidth("New Achievement!")) / 2, boxY
+				+ fontRegularMetrics.getHeight());
+		drawSprite(achievement.getSpriteType(), boxX + boxWidth / 2 - 11,
+				boxY + 22, Color.YELLOW);
 		backBufferGraphics.setColor(Color.WHITE);
-		drawCenteredRegularString(screen, achievement.getName(), boxY
-				+ fontRegularMetrics.getHeight() * 5 / 2);
+		backBufferGraphics.drawString(achievement.getName(), boxX + (boxWidth
+				- fontRegularMetrics.stringWidth(achievement.getName())) / 2,
+				boxY + 60);
+	}
+
+	/**
+	 * Draws an achievement icon alongside its name, status, and description.
+	 *
+	 * @param screen Screen where the achievement is drawn.
+	 * @param achievement Achievement to display.
+	 */
+	public void drawAchievement(final Screen screen,
+			final Achievement achievement) {
+		int iconX = screen.getWidth() / 5;
+		int contentX = iconX + 40;
+		int nameY = screen.getHeight() / 2;
+		String status = achievement.isUnlocked() ? "UNLOCKED" : "LOCKED";
+
+		drawSprite(achievement.getSpriteType(), iconX, nameY - 20,
+				achievement.isUnlocked() ? Color.YELLOW : Color.DARK_GRAY);
+		backBufferGraphics.setFont(fontRegular);
+		backBufferGraphics.setColor(achievement.isUnlocked() ? Color.WHITE
+				: Color.GRAY);
+		backBufferGraphics.drawString(achievement.getName() + " - " + status,
+				contentX, nameY);
+		backBufferGraphics.setColor(Color.GRAY);
+		backBufferGraphics.drawString("Unlock: defeat "
+				+ achievement.getRequiredEnemyKills() + " enemies.", contentX,
+				nameY + fontRegularMetrics.getHeight() * 2);
 	}
 
 	/**

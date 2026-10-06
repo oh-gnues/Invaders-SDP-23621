@@ -290,7 +290,9 @@ public class GameScreen extends Screen {
 				.getCoins());
 		drawManager.drawHorizontalLine(this, SEPARATION_LINE_HEIGHT - 1);
 		if (this.unlockedAchievement != null) {
-			drawManager.drawAchievementUnlocked(this, this.unlockedAchievement);
+			drawManager.drawAchievementUnlocked(this, this.unlockedAchievement,
+					this.ship.getPositionX(), this.ship.getPositionY(),
+					this.ship.getWidth());
 			if (this.achievementPopupCooldown.checkFinished())
 				this.unlockedAchievement = null;
 		}
