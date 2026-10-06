@@ -574,33 +574,43 @@ public final class DrawManager {
 	 *
 	 * @param screen Screen where the popup is drawn.
 	 * @param achievement Newly unlocked achievement.
-	 * @param shipPositionX Horizontal position of the player ship.
-	 * @param shipPositionY Vertical position of the player ship.
-	 * @param shipWidth Width of the player ship.
+	 * @param elapsedMilliseconds Time since the popup started.
+	 * @param durationMilliseconds Total popup duration.
+	 * @param slideInMilliseconds Slide-in duration.
+	 * @param slideOutMilliseconds Slide-out duration.
 	 */
 	public void drawAchievementUnlocked(final Screen screen,
-			final Achievement achievement, final int shipPositionX,
-			final int shipPositionY, final int shipWidth) {
-		int boxWidth = 148;
-		int boxHeight = 68;
-		int boxX = shipPositionX + shipWidth / 2 - boxWidth / 2;
-		int boxY = shipPositionY - boxHeight - 6;
-		boxX = Math.max(6, Math.min(boxX, screen.getWidth() - boxWidth - 6));
+			final Achievement achievement, final long elapsedMilliseconds,
+			final int durationMilliseconds, final int slideInMilliseconds,
+			final int slideOutMilliseconds) {
+		int boxWidth = 218;
+		int boxHeight = 44;
+		int visibleX = screen.getWidth() - boxWidth - 6;
+		int hiddenX = screen.getWidth() + 2;
+		int boxY = 46;
+		int boxX = visibleX;
+
+		if (elapsedMilliseconds < slideInMilliseconds)
+			boxX = hiddenX - (hiddenX - visibleX) * (int) elapsedMilliseconds
+					/ slideInMilliseconds;
+		else if (elapsedMilliseconds > durationMilliseconds
+				- slideOutMilliseconds)
+			boxX = visibleX + (hiddenX - visibleX) * (int) (elapsedMilliseconds
+					- (durationMilliseconds - slideOutMilliseconds))
+					/ slideOutMilliseconds;
 
 		backBufferGraphics.setColor(Color.BLACK);
 		backBufferGraphics.fillRect(boxX, boxY, boxWidth, boxHeight);
 		backBufferGraphics.setColor(Color.GREEN);
 		backBufferGraphics.drawRect(boxX, boxY, boxWidth, boxHeight);
 		backBufferGraphics.setColor(Color.GREEN);
-		backBufferGraphics.drawString("New Achievement!", boxX + (boxWidth
-				- fontRegularMetrics.stringWidth("New Achievement!")) / 2, boxY
-				+ fontRegularMetrics.getHeight());
-		drawSprite(achievement.getSpriteType(), boxX + boxWidth / 2 - 11,
-				boxY + 22, Color.YELLOW);
+		backBufferGraphics.drawString("ACHIEVEMENT UNLOCKED", boxX + 34,
+				boxY + 16);
+		drawSprite(achievement.getSpriteType(), boxX + 8, boxY + 23,
+				Color.YELLOW);
 		backBufferGraphics.setColor(Color.WHITE);
-		backBufferGraphics.drawString(achievement.getName(), boxX + (boxWidth
-				- fontRegularMetrics.stringWidth(achievement.getName())) / 2,
-				boxY + 60);
+		backBufferGraphics.drawString(achievement.getName(), boxX + 34,
+				boxY + 35);
 	}
 
 	/**
