@@ -283,9 +283,6 @@ public class GameScreen extends Screen {
 			 */
 			this.ship.setBlinking(this.lives > 0
 					&& this.lives <= LOW_HEALTH_LIVES);
-
-			this.ship.update();
-			this.enemyShipFormation.update();
 		}
 
 		manageCollisions();
