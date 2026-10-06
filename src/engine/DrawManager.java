@@ -16,6 +16,7 @@ import screen.MenuItem;
 import screen.Screen;
 import entity.Coin;
 import entity.Entity;
+import entity.Particle;
 import entity.Ship;
 import item.ItemAPI;
 import item.ItemSystem;
@@ -532,6 +533,23 @@ public final class DrawManager {
 		backBufferGraphics.setColor(Color.WHITE);
 		backBufferGraphics.drawString(balanceString, startX + iconSize
 				+ iconTextGap, positionY);
+	}
+
+	/**
+	 * Draws a sparkle, see-through according to its age.
+	 * AUTHORED BY: VFX TEAM (Effection)
+	 *
+	 * @param particle
+	 *            Particle to draw.
+	 */
+	public void drawParticle(final Particle particle) {
+		java.awt.Graphics2D g2d = (java.awt.Graphics2D) backBufferGraphics;
+		g2d.setComposite(java.awt.AlphaComposite.getInstance(
+				java.awt.AlphaComposite.SRC_OVER, particle.getAlpha()));
+		g2d.setColor(particle.getColor());
+		g2d.fillRect(particle.getX(), particle.getY(), particle.getSize(),
+				particle.getSize());
+		g2d.setComposite(java.awt.AlphaComposite.SrcOver);
 	}
 
 	/**
