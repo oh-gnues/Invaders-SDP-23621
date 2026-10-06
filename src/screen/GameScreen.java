@@ -86,6 +86,8 @@ public class GameScreen extends Screen {
 	private static final int SEPARATION_LINE_HEIGHT = 40;
 	/** Lives at or below this value start the glitch. */
 	private static final int LOW_HEALTH_LIVES = 1;
+	/** Low-life effect duration (ms). */
+	private static final int LOW_HEALTH_EFFECT_DURATION = 5000;
 	/** Coins awarded when a regular enemy's drop chance succeeds. */
 	private static final int COIN_VALUE = 1;
 	/** Coins guaranteed when the special bonus ship is destroyed. */
@@ -153,6 +155,12 @@ public class GameScreen extends Screen {
 	private boolean levelFinished;
 	/** Checks if a bonus life is received. */
 	private boolean bonusLife;
+	/** Timer for the low-life effect. */
+	private Cooldown lowHealthTimer;
+	/** Lives in the last frame. */
+	private int prevLives;
+	/** True while the low-life effect is on. */
+	private boolean lowHealthActive;
 	/** Dims the screen when the player is hit. */
 	private DamageDimEffect damageDim;
 	/** Glitch effect for low health. */
@@ -214,6 +222,9 @@ public class GameScreen extends Screen {
 		this.enemyShipSpecialExplosionCooldown = Core
 				.getCooldown(BONUS_SHIP_EXPLOSION);
 		this.screenFinishedCooldown = Core.getCooldown(SCREEN_CHANGE_INTERVAL);
+		this.lowHealthTimer = Core.getCooldown(LOW_HEALTH_EFFECT_DURATION);
+		this.prevLives = -1;
+		this.lowHealthActive = false;
 		this.bullets = new HashSet<Bullet>();
 		this.damageDim = new DamageDimEffect(900, 0.75f,
         new java.awt.Color(150, 0, 0));  //new update dim effect
@@ -236,6 +247,19 @@ public class GameScreen extends Screen {
 		this.gameStartTime = System.currentTimeMillis();
 		this.inputDelay = Core.getCooldown(INPUT_DELAY);
 		this.inputDelay.reset();
+	}
+
+	/**
+	 * Starts the 5 s low-life effect when lives become 1. Stops on timeout
+	 * or life gain.
+	 * AUTHORED BY: VFX TEAM (Effection)
+	 */
+	private void updateLowHealthEffect() {
+		boolean lowHealth = this.lives > 0 && this.lives <= LOW_HEALTH_LIVES;
+		if (lowHealth && this.lives != this.prevLives)
+			this.lowHealthTimer.reset();
+		this.prevLives = this.lives;
+		this.lowHealthActive = lowHealth && !this.lowHealthTimer.checkFinished();
 	}
 
 	/**
@@ -321,8 +345,8 @@ public class GameScreen extends Screen {
 			 *
 			 * Ship blinks when lives remain 1.
 			 */
-			this.ship.setBlinking(this.lives > 0
-					&& this.lives <= LOW_HEALTH_LIVES);
+			updateLowHealthEffect();
+			this.ship.setBlinking(this.lowHealthActive);
 		}
 
 		// Item System (Team CS): drops fall/expire, pickups, effect timers.
@@ -548,8 +572,7 @@ public class GameScreen extends Screen {
 		drawManager.drawHorizontalLine(this, SEPARATION_LINE_HEIGHT - 1);
 		drawManager.drawItemHud(this, this.items); // Item System (Team CS)
 		// Low-health glitch (covers game + HUD). AUTHORED BY: VFX TEAM (Effection)
-		this.glitch.setEnabled(this.lives > 0
-				&& this.lives <= LOW_HEALTH_LIVES && !this.levelFinished);
+		this.glitch.setEnabled(this.lowHealthActive && !this.levelFinished);
 		drawManager.drawGlitch(this, this.glitch);
 		// Countdown to game start.
 		if (!this.inputDelay.checkFinished()) {
