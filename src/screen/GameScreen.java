@@ -6,6 +6,8 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.Set;
 
 import engine.CoinDropManager;
@@ -73,6 +75,10 @@ public class GameScreen extends Screen {
 	private static final int GAME_OVER_FADE_DURATION = 800;
 	/** How long an achievement unlock popup remains visible. */
 	private static final int ACHIEVEMENT_POPUP_INTERVAL = 3000;
+	/** Time used for the popup to slide in. */
+	private static final int ACHIEVEMENT_POPUP_SLIDE_IN = 250;
+	/** Time used for the popup to slide out. */
+	private static final int ACHIEVEMENT_POPUP_SLIDE_OUT = 350;
 	/** Height of the interface separation line. */
 	private static final int SEPARATION_LINE_HEIGHT = 40;
 	/** Lives at or below this value start the glitch. */
@@ -98,6 +104,7 @@ public class GameScreen extends Screen {
 	private Cooldown enemyShipSpecialExplosionCooldown;
 	/** Time from finishing the level to screen change. */
 	private Cooldown screenFinishedCooldown;
+
 	// Game over animation state. AUTHORED BY: VFX TEAM (Effection)
 	/** Time until the next enemy row explodes on game over. */
 	private Cooldown gameOverRowCooldown;
@@ -113,10 +120,15 @@ public class GameScreen extends Screen {
 	private boolean gameOverActive;
 	/** Checks if the game over banner is shown. */
 	private boolean showGameOverText;
+	
 	/** Time until the achievement unlock popup closes. */
 	private Cooldown achievementPopupCooldown;
 	/** Achievement currently shown in the unlock popup. */
 	private Achievement unlockedAchievement;
+	/** Achievements waiting to be shown in the unlock popup. */
+	private Queue<Achievement> achievementPopupQueue;
+	/** Time when the current achievement popup started. */
+	private long achievementPopupStartedAt;
 	/** Set of all bullets fired by on screen ships. */
 	private Set<Bullet> bullets;
 	/** Set of coins currently dropped and falling on screen. */
@@ -139,7 +151,7 @@ public class GameScreen extends Screen {
 	/** Checks if a bonus life is received. */
 	private boolean bonusLife;
 	/** Dims the screen when the player is hit. */
-	private DamageDimEffect damageDim; 
+	private DamageDimEffect damageDim;
 	/** Glitch effect for low health. */
 	private GlitchEffect glitch;
 	/** Diamonds earned this run but not yet cashed out; lost on death,
@@ -195,13 +207,12 @@ public class GameScreen extends Screen {
 		this.enemyShipSpecialExplosionCooldown = Core
 				.getCooldown(BONUS_SHIP_EXPLOSION);
 		this.screenFinishedCooldown = Core.getCooldown(SCREEN_CHANGE_INTERVAL);
-		this.achievementPopupCooldown = Core.getCooldown(
-				ACHIEVEMENT_POPUP_INTERVAL);
 		this.bullets = new HashSet<Bullet>();
 		this.damageDim = new DamageDimEffect(900, 0.75f,
         new java.awt.Color(150, 0, 0));  //new update dim effect
 		this.glitch = new GlitchEffect();
 		this.coins = new HashSet<Coin>();
+		this.achievementPopupQueue = new LinkedList<Achievement>();
 		this.coinDropManager = new CoinDropManager();
 
 		// Special input delay / countdown.
@@ -288,6 +299,7 @@ public class GameScreen extends Screen {
 		manageCollisions();
 		cleanBullets();
 		updateCoins();
+		updateAchievementPopup();
 		draw();
 
 		// Game over sequence, only when the player runs out of lives. AUTHORED BY: VFX TEAM (Effection)
@@ -490,17 +502,10 @@ public class GameScreen extends Screen {
 		drawManager.drawCoinBalance(this, CurrencyManager.getInstance()
 				.getCoins());
 		drawManager.drawHorizontalLine(this, SEPARATION_LINE_HEIGHT - 1);
-		if (this.unlockedAchievement != null) {
-			drawManager.drawAchievementUnlocked(this, this.unlockedAchievement);
-			if (this.achievementPopupCooldown.checkFinished())
-				this.unlockedAchievement = null;
-		}
-
 		// Low-health glitch (covers game + HUD). AUTHORED BY: VFX TEAM (Effection)
 		this.glitch.setEnabled(this.lives > 0
 				&& this.lives <= LOW_HEALTH_LIVES && !this.levelFinished);
 		drawManager.drawGlitch(this, this.glitch);
-
 		// Countdown to game start.
 		if (!this.inputDelay.checkFinished()) {
 			int countdown = (int) ((INPUT_DELAY
@@ -514,11 +519,19 @@ public class GameScreen extends Screen {
 					/ 12);
 		}
 
+
 		// Game over animation. AUTHORED BY: VFX TEAM (Effection)
 		if (this.shrinkingEnemies != null)
 			drawShrinkingEnemies();
 		if (this.showGameOverText)
 			drawGameOverSequence();
+
+		// Draw the notification after every gameplay and HUD element.
+		if (this.unlockedAchievement != null)
+			drawManager.drawAchievementUnlocked(this, this.unlockedAchievement,
+					System.currentTimeMillis() - this.achievementPopupStartedAt,
+					ACHIEVEMENT_POPUP_INTERVAL, ACHIEVEMENT_POPUP_SLIDE_IN,
+					ACHIEVEMENT_POPUP_SLIDE_OUT);
 
 		drawManager.completeDrawing(this);
 	}
@@ -659,9 +672,29 @@ public class GameScreen extends Screen {
 	 * @param achievement Newly unlocked achievement, if any.
 	 */
 	private void showUnlockedAchievement(final Achievement achievement) {
-		if (achievement != null) {
-			this.unlockedAchievement = achievement;
-			this.achievementPopupCooldown.reset();
+		if (achievement != null)
+			this.achievementPopupQueue.add(achievement);
+	}
+
+	/** Advances the unlock-popup queue without interrupting gameplay. */
+	private void updateAchievementPopup() {
+		if (this.unlockedAchievement == null) {
+			startNextAchievementPopup();
+			return;
+		}
+
+		if (System.currentTimeMillis() - this.achievementPopupStartedAt
+				>= ACHIEVEMENT_POPUP_INTERVAL) {
+			this.unlockedAchievement = null;
+			startNextAchievementPopup();
+		}
+	}
+
+	/** Starts the next queued unlock notification, if there is one. */
+	private void startNextAchievementPopup() {
+		if (!this.achievementPopupQueue.isEmpty()) {
+			this.unlockedAchievement = this.achievementPopupQueue.remove();
+			this.achievementPopupStartedAt = System.currentTimeMillis();
 		}
 	}
 
