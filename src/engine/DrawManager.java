@@ -51,6 +51,10 @@ public final class DrawManager {
 	private static final int ITEM_NOTICE_BOTTOM_OFFSET = 60;
 	/** The shield bubble blinks during this many last milliseconds. */
 	private static final long SHIELD_BLINK_MILLIS = 2000;
+	/** Current world offset X (screen shake). */
+	private static int worldOffsetX;
+	/** Current world offset Y (screen shake). */
+	private static int worldOffsetY;
 	/** Normal sized font. */
 	private static Font fontRegular;
 	/** Normal sized font properties. */
@@ -199,6 +203,8 @@ public final class DrawManager {
 
 		graphics = frame.getGraphics();
 		backBufferGraphics = backBuffer.getGraphics();
+		worldOffsetX = 0;
+		worldOffsetY = 0;
 
 		backBufferGraphics.setColor(Color.BLACK);
 		backBufferGraphics
@@ -219,8 +225,27 @@ public final class DrawManager {
 	 *            Screen to draw on.
 	 */
 	public void completeDrawing(final Screen screen) {
+		setWorldOffset(0, 0);
 		graphics.drawImage(backBuffer, frame.getInsets().left,
 				frame.getInsets().top, frame);
+	}
+
+	/**
+	 * AUTHORED BY: VFX TEAM (Effection)
+	 *
+	 * Moves everything drawn after this call by the given offset.
+	 * Used for screen shake. Call setWorldOffset(0, 0) before the HUD.
+	 *
+	 * @param offsetX
+	 *            X offset in pixels.
+	 * @param offsetY
+	 *            Y offset in pixels.
+	 */
+	public void setWorldOffset(final int offsetX, final int offsetY) {
+		backBufferGraphics.translate(offsetX - worldOffsetX,
+				offsetY - worldOffsetY);
+		worldOffsetX = offsetX;
+		worldOffsetY = offsetY;
 	}
 
 	/**

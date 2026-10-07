@@ -21,6 +21,7 @@ import engine.Achievement;
 import engine.DamageDimEffect;
 import engine.GameEvents;
 import engine.GlitchEffect;
+import engine.ScreenShake;
 import entity.Bullet;
 import entity.BulletPool;
 import entity.Coin;
@@ -157,6 +158,8 @@ public class GameScreen extends Screen {
 	private DamageDimEffect damageDim;
 	/** Glitch effect for low health. */
 	private GlitchEffect glitch;
+	/** Screen shake when an enemy is destroyed. */
+	private ScreenShake screenShake;
 	/** Diamonds earned this run but not yet cashed out; lost on death,
 	 * banked into DiamondManager only when the player cashes out. */
 	private int pendingDiamonds;
@@ -219,6 +222,7 @@ public class GameScreen extends Screen {
         new java.awt.Color(150, 0, 0));  //new update dim effect
 		GameEvents.subscribe(GameEvents.Type.PLAYER_HIT, this.damageDim);
 		this.glitch = new GlitchEffect();
+		this.screenShake = new ScreenShake();
 		this.coins = new HashSet<Coin>();
 		this.achievementPopupQueue = new LinkedList<Achievement>();
 		this.coinDropManager = new CoinDropManager();
@@ -519,6 +523,11 @@ public class GameScreen extends Screen {
 	private void draw() {
 		drawManager.initDrawing(this);
 
+		// Screen shake: move game world only. AUTHORED BY: VFX TEAM (Effection)
+		this.screenShake.update();
+		drawManager.setWorldOffset(this.screenShake.getOffsetX(),
+				this.screenShake.getOffsetY());
+
 		drawManager.drawEntity(this.ship, this.ship.getPositionX(),
 				this.ship.getPositionY());
 		drawManager.drawItemShield(this.ship, this.items); // Item System (Team CS)
@@ -532,13 +541,20 @@ public class GameScreen extends Screen {
 		for (Bullet bullet : this.bullets)
 			drawManager.drawEntity(bullet, bullet.getPositionX(),
 					bullet.getPositionY());
+		// Stop shake offset before full-screen dim.
+		drawManager.setWorldOffset(0, 0);
 		// Damage dim (under HUD, so score/lives stay bright). AUTHORED BY: VFX TEAM (Effection)
 		drawManager.drawDamageDim(this, this.damageDim);
 
+		// Coins are part of the game world, so they shake too.
+		drawManager.setWorldOffset(this.screenShake.getOffsetX(),
+				this.screenShake.getOffsetY());
 		for (Coin coin : this.coins)
 			drawManager.drawCoin(coin, coin.getPositionX(),
 					coin.getPositionY());
 		drawManager.drawItemDrops(this.items); // Item System (Team CS)
+		// HUD must stay still: remove shake offset.
+		drawManager.setWorldOffset(0, 0);
 
 		// Interface.
 		drawManager.drawScore(this, this.score);
@@ -622,6 +638,7 @@ public class GameScreen extends Screen {
 						this.score += enemyShip.getPointValue();
 						this.shipsDestroyed++;
 						this.enemyShipFormation.destroy(enemyShip);
+						this.screenShake.trigger();
 						maybeDropCoin(enemyShip);
 						this.items.onEnemyDefeated(enemyShip, false);
 						showUnlockedAchievement(Core.getAchievementManager()
@@ -634,6 +651,7 @@ public class GameScreen extends Screen {
 					this.score += this.enemyShipSpecial.getPointValue();
 					this.shipsDestroyed++;
 					this.enemyShipSpecial.destroy();
+					this.screenShake.trigger();
 					dropCoin(this.enemyShipSpecial, BONUS_COIN_VALUE);
 					this.items.onEnemyDefeated(this.enemyShipSpecial, true);
 					showUnlockedAchievement(Core.getAchievementManager()
