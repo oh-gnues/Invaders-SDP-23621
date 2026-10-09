@@ -56,7 +56,6 @@ public final class FileManager {
 	/** Original game font in res/, used if the default font is missing. */
 	private static final String FALLBACK_FONT = "font.ttf";
 
-
 	/**
 	 * private constructor.
 	 */
@@ -118,34 +117,30 @@ public final class FileManager {
 	}
 
 	/**
-	 * Loads a font of a given size.
-	 * 
+	 * Loads the shared game font (Silkscreen by default).
+	 * TESTING: run with -Dgame.font=<path> to try another font
+	 * without changing code.
+	 *
 	 * @param size
 	 *            Point size of the font.
 	 * @return New font.
 	 * @throws IOException
-	 *             In case of loading problems.
+	 *             If neither the chosen font nor the fallback can be read.
 	 * @throws FontFormatException
 	 *             In case of incorrect font format.
 	 */
 	public Font loadFont(final float size) throws IOException,
 			FontFormatException {
-		InputStream inputStream = null;
-		Font font;
-
+		String path = System.getProperty("game.font", DEFAULT_FONT);
 		try {
-			// Font loading.
-			inputStream = FileManager.class.getClassLoader()
-					.getResourceAsStream("font.ttf");
-			font = Font.createFont(Font.TRUETYPE_FONT, inputStream).deriveFont(
-					size);
-		} finally {
-			if (inputStream != null)
-				inputStream.close();
+			return loadFont(path, size);
+		} catch (IOException e) {
+			logger.warning(e.getMessage() + " Using " + FALLBACK_FONT
+					+ " instead.");
+			return loadFont(FALLBACK_FONT, size);
 		}
-
-		return font;
 	}
+
 	/**
 	 * Loads a font from the classpath, or from src/ if it is not there.
 	 *
@@ -175,6 +170,7 @@ public final class FileManager {
 			return Font.createFont(Font.TRUETYPE_FONT, in).deriveFont(size);
 		}
 	}
+
 	/**
 	 * Returns the application default scores if there is no user high scores
 	 * file.
