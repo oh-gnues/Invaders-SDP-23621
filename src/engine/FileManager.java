@@ -146,7 +146,35 @@ public final class FileManager {
 
 		return font;
 	}
-
+	/**
+	 * Loads a font from the classpath, or from src/ if it is not there.
+	 *
+	 * @param resourcePath
+	 *            Path relative to res/ or src/, for example
+	 *            "silkscreen/Silkscreen-Bold.ttf".
+	 * @param size
+	 *            Font size.
+	 * @return Loaded font.
+	 * @throws IOException
+	 *             If the font cannot be found or read.
+	 * @throws FontFormatException
+	 *             In case of incorrect font format.
+	 */
+	public Font loadFont(final String resourcePath, final float size)
+			throws IOException, FontFormatException {
+		InputStream inputStream = FileManager.class.getClassLoader()
+				.getResourceAsStream(resourcePath);
+		if (inputStream == null) {
+			File file = new File(SOURCE_FONT_DIR, resourcePath);
+			if (!file.isFile())
+				throw new IOException("Font not found on classpath or at "
+						+ file.getPath() + ".");
+			inputStream = new FileInputStream(file);
+		}
+		try (InputStream in = inputStream) {
+			return Font.createFont(Font.TRUETYPE_FONT, in).deriveFont(size);
+		}
+	}
 	/**
 	 * Returns the application default scores if there is no user high scores
 	 * file.
