@@ -715,7 +715,7 @@ public final class DrawManager {
 	public void drawKeyHints(final Screen screen, final String hints) {
 		backBufferGraphics.setColor(Color.GRAY);
 		drawCenteredRegularString(screen, hints,
-				screen.getHeight() - fontRegularMetrics.getHeight());
+				screen.getHeight() - fontRegularMetrics.getHeight() * 2);
 	}
 
 	/**
