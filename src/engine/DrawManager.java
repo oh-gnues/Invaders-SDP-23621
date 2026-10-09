@@ -713,8 +713,19 @@ public final class DrawManager {
 	 *            Keys to show, already worded for the current state.
 	 */
 	public void drawKeyHints(final Screen screen, final String hints) {
+		Font hintFont = fontRegular;
+		FontMetrics metrics = fontRegularMetrics;
+		int maxWidth = screen.getWidth() - 20;
+		int textWidth = metrics.stringWidth(hints);
+		if (textWidth > maxWidth) {
+			hintFont = fontRegular.deriveFont(
+					fontRegular.getSize2D() * maxWidth / textWidth);
+			metrics = backBufferGraphics.getFontMetrics(hintFont);
+		}
+		backBufferGraphics.setFont(hintFont);
 		backBufferGraphics.setColor(Color.GRAY);
-		drawCenteredRegularString(screen, hints,
+		backBufferGraphics.drawString(hints,
+				(screen.getWidth() - metrics.stringWidth(hints)) / 2,
 				screen.getHeight() - fontRegularMetrics.getHeight() * 2);
 	}
 
