@@ -49,6 +49,13 @@ public final class FileManager {
 	private static final String COINS_FILE = "coins";
 	/** Name of the file the player's diamond balance is persisted to. */
 	private static final String DIAMONDS_FILE = "diamonds";
+	/** Default shared font, relative to res/ or src/. */
+	public static final String DEFAULT_FONT = "silkscreen/Silkscreen-Bold.ttf";
+	/** Folder checked for fonts that are not on the classpath. */
+	private static final String SOURCE_FONT_DIR = "src";
+	/** Original game font in res/, used if the default font is missing. */
+	private static final String FALLBACK_FONT = "font.ttf";
+
 
 	/**
 	 * private constructor.
