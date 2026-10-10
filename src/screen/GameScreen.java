@@ -544,7 +544,9 @@ public class GameScreen extends Screen {
 		drawManager.drawScore(this, this.score);
 		drawManager.drawLives(this, this.lives);
 		drawManager.drawCoinBalance(this, CurrencyManager.getInstance()
-				.getCoins());
+				.getCoins(), 36);
+		drawManager.drawDiamonds(this, engine.DiamondManager.getInstance()
+				.getDiamonds());
 		drawManager.drawHorizontalLine(this, SEPARATION_LINE_HEIGHT - 1);
 		drawManager.drawItemHud(this, this.items); // Item System (Team CS)
 		// Low-health glitch (covers game + HUD). AUTHORED BY: VFX TEAM (Effection)

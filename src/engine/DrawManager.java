@@ -598,6 +598,44 @@ public final class DrawManager {
 			drawEntity(dummyShip, 40 + 35 * i, 10);
 	}
 
+	/** Y offset of the diamond counter below the score line. */
+	private static final int DIAMONDS_Y_OFFSET = 11;
+	/** Size, in pixels, of the diamond icon drawn next to the count. */
+	private static final int DIAMOND_ICON_SIZE = 10;
+	/** Gap between the diamond icon and its number. */
+	private static final int DIAMOND_ICON_GAP = 4;
+
+	/**
+	 * Draws the player's current diamond balance, left-aligned under the
+	 * score (same start X), as a small diamond icon followed by the amount
+	 * - pure display, no game logic (the Currency team's DiamondManager /
+	 * CashOutScreen own the actual Cash Out / Continue choice and the
+	 * persisted balance).
+	 *
+	 * @param screen
+	 *            Screen to draw on.
+	 * @param diamonds
+	 *            Current diamond balance to display.
+	 */
+	public void drawDiamonds(final Screen screen, final int diamonds) {
+		String valueString = Integer.toString(diamonds);
+		int textY = 25 + DIAMONDS_Y_OFFSET;
+		int startX = screen.getWidth() - 60;
+		int iconTop = textY - DIAMOND_ICON_SIZE + 1;
+
+		int[] xPoints = { startX + DIAMOND_ICON_SIZE / 2, startX + DIAMOND_ICON_SIZE,
+				startX + DIAMOND_ICON_SIZE / 2, startX };
+		int[] yPoints = { iconTop, iconTop + DIAMOND_ICON_SIZE / 2,
+				iconTop + DIAMOND_ICON_SIZE, iconTop + DIAMOND_ICON_SIZE / 2 };
+
+		backBufferGraphics.setColor(Color.CYAN);
+		backBufferGraphics.fillPolygon(xPoints, yPoints, 4);
+		backBufferGraphics.setFont(fontRegular);
+		backBufferGraphics.setColor(Color.WHITE);
+		backBufferGraphics.drawString(valueString, startX + DIAMOND_ICON_SIZE
+				+ DIAMOND_ICON_GAP, textY);
+	}
+
 	/**
 	 * Draws a thick line from side to side of the screen.
 	 * 
