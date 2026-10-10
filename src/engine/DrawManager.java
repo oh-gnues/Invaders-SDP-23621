@@ -94,8 +94,16 @@ public final class DrawManager {
 		EnemyShipSpecial,
 		/** Destroyed enemy ship. */
 		Explosion,
+		/** Player ship with a high movement speed (Fast Move). */
+		ShipFastMove,
+		/** Player ship that shoots from two barrels (Two-Way Shot). */
+		ShipTwoWay,
 		/** First Flight achievement icon. */
 		FirstFlight,
+        /** Fast Attack player ship. */
+        ShipFastAttack,
+        /** Big Bullet player ship. */
+        ShipBigBullet,
 		/** Fleet Master achievement icon. */
 		FleetMaster,
 		/** Weakestship sprite. */
@@ -129,7 +137,11 @@ public final class DrawManager {
 			spriteMap.put(SpriteType.EnemyShipC2, new boolean[12][8]);
 			spriteMap.put(SpriteType.EnemyShipSpecial, new boolean[16][7]);
 			spriteMap.put(SpriteType.Explosion, new boolean[13][7]);
+			spriteMap.put(SpriteType.ShipFastMove, new boolean[13][8]);
+			spriteMap.put(SpriteType.ShipTwoWay, new boolean[13][8]);
 			spriteMap.put(SpriteType.FirstFlight, new boolean[11][8]);
+            spriteMap.put(SpriteType.ShipFastAttack, new boolean[13][8]);
+            spriteMap.put(SpriteType.ShipBigBullet, new boolean[13][8]);
 			spriteMap.put(SpriteType.FleetMaster, new boolean[23][23]);
 			spriteMap.put(SpriteType.Weakestship, new boolean[11][11]);
 			spriteMap.put(SpriteType.InfinityVoid, new boolean[11][11]);
@@ -536,7 +548,7 @@ public final class DrawManager {
 
 	/**
 	 * For debugging purpouses, draws the canvas borders.
-	 * 
+	 *
 	 * @param screen
 	 *            Screen to draw in.
 	 */
@@ -553,7 +565,7 @@ public final class DrawManager {
 
 	/**
 	 * For debugging purpouses, draws a grid over the canvas.
-	 * 
+	 *
 	 * @param screen
 	 *            Screen to draw in.
 	 */
@@ -568,7 +580,7 @@ public final class DrawManager {
 
 	/**
 	 * Draws current score on screen.
-	 * 
+	 *
 	 * @param screen
 	 *            Screen to draw on.
 	 * @param score
@@ -583,7 +595,7 @@ public final class DrawManager {
 
 	/**
 	 * Draws number of remaining lives on screen.
-	 * 
+	 *
 	 * @param screen
 	 *            Screen to draw on.
 	 * @param lives
@@ -600,7 +612,7 @@ public final class DrawManager {
 
 	/**
 	 * Draws a thick line from side to side of the screen.
-	 * 
+	 *
 	 * @param screen
 	 *            Screen to draw on.
 	 * @param positionY
@@ -615,7 +627,7 @@ public final class DrawManager {
 
 	/**
 	 * Draws game title.
-	 * 
+	 *
 	 * @param screen
 	 *            Screen to draw on.
 	 */
@@ -628,7 +640,7 @@ public final class DrawManager {
 
 	/**
 	 * Draws main menu.
-	 * 
+	 *
 	 * @param screen
 	 *            Screen to draw on.
 	 * @param selected
@@ -658,7 +670,7 @@ public final class DrawManager {
 	 * Finds the menu item drawn at a given height. Each item owns a full-width
 	 * row as tall as the spacing between items, so the whole row is clickable,
 	 * not just the text.
-	 * 
+	 *
 	 * @param screen
 	 *            Screen the menu is drawn on.
 	 * @param positionY
@@ -683,7 +695,7 @@ public final class DrawManager {
 	/**
 	 * Height of the baseline of a menu item. Drawing and hit-testing both use
 	 * this, so they cannot drift apart.
-	 * 
+	 *
 	 * @param screen
 	 *            Screen the menu is drawn on.
 	 * @param index
@@ -696,7 +708,7 @@ public final class DrawManager {
 
 	/**
 	 * Distance between two menu items.
-	 * 
+	 *
 	 * @return Spacing, in pixels.
 	 */
 	private int menuItemSpacing() {
@@ -857,7 +869,7 @@ public final class DrawManager {
 	 * Draws the title of a screen reached from the main menu, in the same
 	 * colour and place as the high score screen's title. Sets its own colour,
 	 * so it does not depend on what was drawn before it.
-	 * 
+	 *
 	 * @param screen
 	 *            Screen to draw on.
 	 * @param title
@@ -870,7 +882,7 @@ public final class DrawManager {
 
 	/**
 	 * Draws game results.
-	 * 
+	 *
 	 * @param screen
 	 *            Screen to draw on.
 	 * @param score
@@ -910,7 +922,7 @@ public final class DrawManager {
 
 	/**
 	 * Draws interactive characters for name input.
-	 * 
+	 *
 	 * @param screen
 	 *            Screen to draw on.
 	 * @param name
@@ -959,7 +971,7 @@ public final class DrawManager {
 
 	/**
 	 * Draws basic content of game over screen.
-	 * 
+	 *
 	 * @param screen
 	 *            Screen to draw on.
 	 * @param acceptsInput
@@ -988,8 +1000,26 @@ public final class DrawManager {
 	}
 
 	/**
+	 * Draws high score screen title and instructions.
+	 *
+	 * @param screen
+	 *            Screen to draw on.
+	 */
+	public void drawHighScoreMenu(final Screen screen) {
+		String highScoreString = "High Scores";
+		String instructionsString = "Press Space to return";
+
+		backBufferGraphics.setColor(Color.GREEN);
+		drawCenteredBigString(screen, highScoreString, screen.getHeight() / 8);
+
+		backBufferGraphics.setColor(Color.GRAY);
+		drawCenteredRegularString(screen, instructionsString,
+				screen.getHeight() / 5);
+	}
+
+	/**
 	 * Draws high scores.
-	 * 
+	 *
 	 * @param screen
 	 *            Screen to draw on.
 	 * @param highScores
@@ -1012,7 +1042,7 @@ public final class DrawManager {
 
 	/**
 	 * Draws a centered string on regular font.
-	 * 
+	 *
 	 * @param screen
 	 *            Screen to draw on.
 	 * @param string
@@ -1029,7 +1059,7 @@ public final class DrawManager {
 
 	/**
 	 * Draws a centered string on big font.
-	 * 
+	 *
 	 * @param screen
 	 *            Screen to draw on.
 	 * @param string
@@ -1123,7 +1153,7 @@ public final class DrawManager {
 
 	/**
 	 * Countdown to game start.
-	 * 
+	 *
 	 * @param screen
 	 *            Screen to draw on.
 	 * @param level
@@ -1218,13 +1248,13 @@ public final class DrawManager {
 		if (effect != null)
 			effect.draw(backBufferGraphics, screen.getWidth(),
 					screen.getHeight());
-	}                                      
+	}
 
-	/**                                     
+	/**
 	 * Draws the low-health glitch effect.
 	 * AUTHORED BY: VFX TEAM (Effection)
 	 *Any further inquiries please contact us.
-	 * 
+	 *
 	 * @param screen Screen to draw on.
 	 * @param effect Glitch effect to draw.
 	 */
