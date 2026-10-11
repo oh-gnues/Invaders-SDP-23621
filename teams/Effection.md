@@ -216,7 +216,8 @@ Our Visual Effect System needs to coordinate with the Sound Effects/BGM Team for
 
 ## Game font
 
-- Default: `res/silkscreen/Silkscreen-Bold.ttf` (SIL Open Font License 1.1, see `res/silkscreen/OFL.txt`)
+- Default: `res/silkscreen/Silkscreen-Regular.ttf` (SIL Open Font License 1.1, see `res/silkscreen/OFL.txt`)
+- Also included: `Silkscreen-Bold.ttf` (try it: `-Dgame.font=silkscreen/Silkscreen-Bold.ttf`)
 - Fallback: `res/font.ttf` (used if the default font is missing)
 - Try another font: `java -Dgame.font=<path> -cp "out;res" engine.Core`
 - Long key hint lines shrink to fit the screen width.
