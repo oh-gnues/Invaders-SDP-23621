@@ -193,3 +193,7 @@ coins
 diamonds
 coins.tmp
 diamonds.tmp
+
+# Equipped items the player owns, written at runtime (Item System)
+/equipment
+/equipment.tmp
