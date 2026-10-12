@@ -638,6 +638,8 @@ public class GameScreen extends Screen {
 
 	/**
 	 * Scatters sparkles from the center of a destroyed ship.
+	 * Must be called BEFORE the ship is destroyed, while its position and
+	 * size are still valid.
 	 * AUTHORED BY: VFX TEAM (Effection)
 	 *
 	 * @param ship
