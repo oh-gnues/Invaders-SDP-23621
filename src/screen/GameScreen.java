@@ -571,9 +571,11 @@ public class GameScreen extends Screen {
 
 		enemyShipFormation.draw();
 
-		// Hit sparkles. AUTHORED BY: VFX TEAM (Effection)
-		for (Particle particle : this.particles)
-			drawManager.drawParticle(particle);
+		// Hit sparkles: drawn while the shake offset is applied so they move
+		// with the game world, and clipped to the play area so they never
+		// cover the HUD. AUTHORED BY: VFX TEAM (Effection)
+		drawManager.drawParticles(this, this.particles,
+				SEPARATION_LINE_HEIGHT);
 
 		for (Bullet bullet : this.bullets)
 			drawManager.drawEntity(bullet, bullet.getPositionX(),
