@@ -604,6 +604,28 @@ public final class DrawManager {
 				particle.getSize());
 		g2d.setComposite(java.awt.AlphaComposite.SrcOver);
 	}
+		/**
+	 * Draws all sparkles, clipped to the play area below the HUD line.
+	 * Call while the world offset is applied so they shake with the world.
+	 * AUTHORED BY: VFX TEAM (Effection)
+	 *
+	 * @param screen
+	 *            Screen to draw on.
+	 * @param particles
+	 *            Particles to draw.
+	 * @param topY
+	 *            Y of the HUD separation line; nothing is drawn above it.
+	 */
+	public void drawParticles(final Screen screen,
+			final java.util.List<Particle> particles, final int topY) {
+		java.awt.Shape oldClip = backBufferGraphics.getClip();
+		// Undo the shake offset so the clip stays fixed on screen.
+		backBufferGraphics.clipRect(-worldOffsetX, topY - worldOffsetY,
+				screen.getWidth(), screen.getHeight() - topY);
+		for (Particle particle : particles)
+			drawParticle(particle);
+		backBufferGraphics.setClip(oldClip);
+	}
 
 	/**
 	 * For debugging purpouses, draws the canvas borders.
@@ -1304,7 +1326,7 @@ public final class DrawManager {
 			backBufferGraphics.setColor(Color.WHITE);
 		drawCenteredRegularString(screen, string, height);
 	}
-	
+
 	/**
 	 * Draws the damage dim overlay when the player is hit.
 	 *AUTHORED BY: VFX TEAM (Effection)
