@@ -1304,6 +1304,7 @@ public final class DrawManager {
 			backBufferGraphics.setColor(Color.WHITE);
 		drawCenteredRegularString(screen, string, height);
 	}
+	
 	/**
 	 * Draws the damage dim overlay when the player is hit.
 	 *AUTHORED BY: VFX TEAM (Effection)
