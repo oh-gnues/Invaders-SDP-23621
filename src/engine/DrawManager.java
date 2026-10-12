@@ -55,6 +55,8 @@ public final class DrawManager {
 	private static final int ITEM_NOTICE_BOTTOM_OFFSET = 60;
 	/** The shield bubble blinks during this many last milliseconds. */
 	private static final long SHIELD_BLINK_MILLIS = 2000;
+	/** Space between HUD text and the screen edge (px). */
+	private static final int HUD_MARGIN = 10;
 	/** Current world offset X (screen shake). */
 	private static int worldOffsetX;
 	/** Current world offset Y (screen shake). */
@@ -649,7 +651,8 @@ public final class DrawManager {
 		backBufferGraphics.setFont(fontRegular);
 		backBufferGraphics.setColor(Color.WHITE);
 		String scoreString = String.format("%04d", score);
-		backBufferGraphics.drawString(scoreString, screen.getWidth() - 60, 25);
+		int x = screen.getWidth() - fontRegularMetrics.stringWidth(scoreString) - HUD_MARGIN;
+		backBufferGraphics.drawString(scoreString, x, 25);
 	}
 
 	/**
