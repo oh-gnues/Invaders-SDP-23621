@@ -654,13 +654,18 @@ public class GameScreen extends Screen {
 	}
 
 	/**
-	 * Moves the sparkles and removes the ones that faded away.
+	 * Moves the sparkles and removes the ones that faded away or left the
+	 * play area. Called every frame, outside the levelFinished gate, so
+	 * sparkles keep fading after a level ends instead of piling up.
+	 * Removal happens after the update loop, never during iteration.
 	 * AUTHORED BY: VFX TEAM (Effection)
 	 */
 	private void updateParticles() {
 		for (Particle particle : this.particles)
 			particle.update();
-		this.particles.removeIf(Particle::isDead);
+		this.particles.removeIf(particle -> particle.isDead()
+				|| !particle.isInside(0, SEPARATION_LINE_HEIGHT,
+						this.width, this.height));
 	}
 
 	/**
