@@ -626,6 +626,28 @@ public final class DrawManager {
 				particle.getSize());
 		g2d.setComposite(java.awt.AlphaComposite.SrcOver);
 	}
+		/**
+	 * Draws all sparkles, clipped to the play area below the HUD line.
+	 * Call while the world offset is applied so they shake with the world.
+	 * AUTHORED BY: VFX TEAM (Effection)
+	 *
+	 * @param screen
+	 *            Screen to draw on.
+	 * @param particles
+	 *            Particles to draw.
+	 * @param topY
+	 *            Y of the HUD separation line; nothing is drawn above it.
+	 */
+	public void drawParticles(final Screen screen,
+			final java.util.List<Particle> particles, final int topY) {
+		java.awt.Shape oldClip = backBufferGraphics.getClip();
+		// Undo the shake offset so the clip stays fixed on screen.
+		backBufferGraphics.clipRect(-worldOffsetX, topY - worldOffsetY,
+				screen.getWidth(), screen.getHeight() - topY);
+		for (Particle particle : particles)
+			drawParticle(particle);
+		backBufferGraphics.setClip(oldClip);
+	}
 
 	/**
 	 * For debugging purpouses, draws the canvas borders.
@@ -659,8 +681,16 @@ public final class DrawManager {
 			backBufferGraphics.drawLine(j, 0, j, screen.getHeight() - 1);
 	}
 
+	/** Margin between the score text and the right edge of the screen. */
+	private static final int SCORE_ZONE_MARGIN = 8;
+	/** Horizontal gap between the "SCORE" label and the value. */
+	private static final int SCORE_LABEL_GAP = 8;
+
 	/**
-	 * Draws current score on screen.
+	 * Draws the current score in the top-right corner, arcade-style: no
+	 * border, just the "SCORE" label in white followed by the value in
+	 * green, right-aligned so it stays anchored to the same edge as the
+	 * digit count grows.
 	 *
 	 * @param screen
 	 *            Screen to draw on.
@@ -668,10 +698,22 @@ public final class DrawManager {
 	 *            Current score.
 	 */
 	public void drawScore(final Screen screen, final int score) {
+		int textY = 25;
+
 		backBufferGraphics.setFont(fontRegular);
+		String label = "SCORE";
+		String scoreString = Integer.toString(score);
+
+		int scoreWidth = fontRegularMetrics.stringWidth(scoreString);
+		int labelWidth = fontRegularMetrics.stringWidth(label);
+		int scoreX = screen.getWidth() - SCORE_ZONE_MARGIN - scoreWidth;
+		int labelX = scoreX - SCORE_LABEL_GAP - labelWidth;
+
 		backBufferGraphics.setColor(Color.WHITE);
-		String scoreString = String.format("%04d", score);
-		backBufferGraphics.drawString(scoreString, screen.getWidth() - 60, 25);
+		backBufferGraphics.drawString(label, labelX, textY);
+
+		backBufferGraphics.setColor(Color.GREEN);
+		backBufferGraphics.drawString(scoreString, scoreX, textY);
 	}
 
 	/**
@@ -682,13 +724,129 @@ public final class DrawManager {
 	 * @param lives
 	 *            Current lives.
 	 */
+	/** Horizontal space reserved for the "LIVES" label. */
+	private static final int LIVES_LABEL_WIDTH = 46;
+	/** Horizontal space reserved per life icon. */
+	private static final int LIVES_ICON_SPACING = 35;
+
 	public void drawLives(final Screen screen, final int lives) {
 		backBufferGraphics.setFont(fontRegular);
 		backBufferGraphics.setColor(Color.WHITE);
-		backBufferGraphics.drawString(Integer.toString(lives), 20, 25);
+		backBufferGraphics.drawString("LIVES", 20, 25);
+
 		Ship dummyShip = new Ship(0, 0);
 		for (int i = 0; i < lives; i++)
-			drawEntity(dummyShip, 40 + 35 * i, 10);
+			drawEntity(dummyShip, 20 + LIVES_LABEL_WIDTH
+					+ LIVES_ICON_SPACING * i, 10);
+	}
+
+	/** Baseline Y of the top-centre level indicator, kept off y=25 so it
+	 * doesn't collide with the Currency team's coin balance, which is
+	 * also centred there. */
+	private static final int LEVEL_INDICATOR_Y = 14;
+
+	/**
+	 * Draws the current wave/level number on screen, top-centre, so the
+	 * player can see it at a glance during play.
+	 *
+	 * @param screen
+	 *            Screen to draw on.
+	 * @param level
+	 *            Current game level.
+	 */
+	public void drawLevel(final Screen screen, final int level) {
+		String label = "LEVEL";
+		String valueString = Integer.toString(level);
+
+		backBufferGraphics.setFont(fontRegular);
+		int labelWidth = fontRegularMetrics.stringWidth(label);
+		int valueWidth = fontRegularMetrics.stringWidth(valueString);
+		int gap = 6;
+		int totalWidth = labelWidth + gap + valueWidth;
+		int labelX = (screen.getWidth() - totalWidth) / 2;
+		int valueX = labelX + labelWidth + gap;
+
+		backBufferGraphics.setColor(Color.WHITE);
+		backBufferGraphics.drawString(label, labelX, LEVEL_INDICATOR_Y);
+		backBufferGraphics.setColor(Color.GREEN);
+		backBufferGraphics.drawString(valueString, valueX, LEVEL_INDICATOR_Y);
+	}
+	/** Y offset of the diamond counter below the score line. */
+	private static final int DIAMONDS_Y_OFFSET = 11;
+	/** Size, in pixels, of the diamond icon drawn next to the count. */
+	private static final int DIAMOND_ICON_SIZE = 10;
+	/** Gap between the diamond icon and its number. */
+	private static final int DIAMOND_ICON_GAP = 4;
+
+	/**
+	 * Draws the player's current diamond balance, left-aligned under the
+	 * score (same start X), as a small diamond icon followed by the amount
+	 * - pure display, no game logic (the Currency team's DiamondManager /
+	 * CashOutScreen own the actual Cash Out / Continue choice and the
+	 * persisted balance).
+	 *
+	 * @param screen
+	 *            Screen to draw on.
+	 * @param diamonds
+	 *            Current diamond balance to display.
+	 */
+	public void drawDiamonds(final Screen screen, final int diamonds) {
+		String valueString = Integer.toString(diamonds);
+		int textY = 25 + DIAMONDS_Y_OFFSET;
+		int startX = screen.getWidth() - 60;
+		int iconTop = textY - DIAMOND_ICON_SIZE + 1;
+
+		int[] xPoints = { startX + DIAMOND_ICON_SIZE / 2, startX + DIAMOND_ICON_SIZE,
+				startX + DIAMOND_ICON_SIZE / 2, startX };
+		int[] yPoints = { iconTop, iconTop + DIAMOND_ICON_SIZE / 2,
+				iconTop + DIAMOND_ICON_SIZE, iconTop + DIAMOND_ICON_SIZE / 2 };
+
+		backBufferGraphics.setColor(Color.CYAN);
+		backBufferGraphics.fillPolygon(xPoints, yPoints, 4);
+		backBufferGraphics.setFont(fontRegular);
+		backBufferGraphics.setColor(Color.WHITE);
+		backBufferGraphics.drawString(valueString, startX + DIAMOND_ICON_SIZE
+				+ DIAMOND_ICON_GAP, textY);
+	}
+
+	/**
+	 * Draws the in-game pause menu: a boxed panel over the frozen game,
+	 * same look as the exit confirmation, with a "PAUSED" title and a
+	 * vertical list of options. The selected option is green with a
+	 * leading cursor, like the main menu.
+	 *
+	 * @param screen
+	 *            Screen to draw on.
+	 * @param options
+	 *            Option labels, in the order they are listed.
+	 * @param selectedIndex
+	 *            Index of the option the cursor is on.
+	 */
+	public void drawPauseMenu(final Screen screen, final String[] options,
+			final int selectedIndex) {
+		String title = "PAUSED";
+
+		int spacing = menuItemSpacing();
+		int boxWidth = screen.getWidth() * 3 / 4;
+		int boxHeight = spacing * (options.length + 3);
+		int boxX = (screen.getWidth() - boxWidth) / 2;
+		int boxY = (screen.getHeight() - boxHeight) / 2;
+
+		backBufferGraphics.setColor(Color.BLACK);
+		backBufferGraphics.fillRect(boxX, boxY, boxWidth, boxHeight);
+		backBufferGraphics.setColor(Color.GREEN);
+		backBufferGraphics.drawRect(boxX, boxY, boxWidth, boxHeight);
+
+		backBufferGraphics.setColor(Color.GREEN);
+		drawCenteredBigString(screen, title, boxY + spacing * 3 / 2);
+
+		for (int i = 0; i < options.length; i++) {
+			boolean selected = i == selectedIndex;
+			String line = (selected ? "> " : " ") + options[i];
+			backBufferGraphics.setColor(selected ? Color.GREEN : Color.WHITE);
+			drawCenteredRegularString(screen, line,
+					boxY + spacing * (i + 3));
+		}
 	}
 
 	/**
@@ -1419,6 +1577,7 @@ public final class DrawManager {
 			backBufferGraphics.setColor(Color.WHITE);
 		drawCenteredRegularString(screen, string, height);
 	}
+
 	/**
 	 * Draws the damage dim overlay when the player is hit.
 	 *AUTHORED BY: VFX TEAM (Effection)
@@ -1446,5 +1605,20 @@ public final class DrawManager {
 	public void drawGlitch(final Screen screen, final GlitchEffect effect) {
 		if (effect != null)
 			effect.draw(backBuffer, backBufferGraphics);
+	}
+
+	
+	/**
+	 * Draws the points shown when enemies are destroyed.
+	 * AUTHORED BY: VFX TEAM (Effection)
+	 * Any further inquiries please contact us.
+	 *
+	 * @param screen Screen to draw on.
+	 * @param effect Points effect to draw.
+	 */
+	public void drawPointsEffect(final Screen screen,
+			final PointsEffect effect) {
+		if (effect != null)
+			effect.draw(backBufferGraphics, screen.getWidth(), fontRegular);
 	}
 }
