@@ -15,7 +15,7 @@ public class TitleScreen extends Screen {
 
 	/** Milliseconds between changes in user selection. */
 	private static final int SELECTION_TIME = 200;
-	
+
 	/** Time between changes in user selection. */
 	private Cooldown selectionCooldown;
 	/** Menu item the cursor is on. */
@@ -28,6 +28,8 @@ public class TitleScreen extends Screen {
 	private boolean exitConfirmYes;
 	/** Whether Escape was held during the previous update. */
 	private boolean escapeWasDown;
+	/** Stars behind the menu, kept between visits so they don't jump. */
+	private static Starfield starfield;
 	/**
 	 * Constructor, establishes the properties of the screen.
 	 * 
@@ -46,6 +48,8 @@ public class TitleScreen extends Screen {
 		this.selectionCooldown = Core.getCooldown(SELECTION_TIME);
 		this.selectionCooldown.reset();
 		this.escapeWasDown = this.inputManager.isKeyDown(KeyEvent.VK_ESCAPE);
+		if (starfield == null)
+			starfield = new Starfield(width, height);
 	}
 
 	/**
@@ -70,6 +74,7 @@ public class TitleScreen extends Screen {
 		final boolean escapePressed = escapeDown && !this.escapeWasDown;
 		this.escapeWasDown = escapeDown;
 
+		starfield.update();
 		draw();
 
 		if (!this.inputDelay.checkFinished()) {
@@ -93,10 +98,19 @@ public class TitleScreen extends Screen {
 			}
 		}
 
-		if (inputManager.isMouseMoved() && !this.showingExitConfirm) {
-			MenuItem item = drawManager.menuItemAt(this, inputManager.getMouseY());
-			if (item != null) {
-				this.selected = item;
+		if (inputManager.isMouseMoved()) {
+			if (this.showingExitConfirm) {
+				final Boolean answer = drawManager.exitConfirmAnswerAt(this,
+						inputManager.getMouseX(), inputManager.getMouseY());
+				if (answer != null) {
+					this.exitConfirmYes = answer;
+				}
+			} else {
+				MenuItem item = drawManager.menuItemAt(this,
+						inputManager.getMouseY());
+				if (item != null) {
+					this.selected = item;
+				}
 			}
 		}
 
@@ -121,7 +135,8 @@ public class TitleScreen extends Screen {
 			confirm();
 
 		if (inputManager.isMousePressed()) {
-			final MenuItem item = drawManager.menuItemAt(this, inputManager.getMouseY());
+			final MenuItem item = drawManager.menuItemAt(this,
+					inputManager.getMouseY());
 			if (item != null) {
 				this.selected = item;
 				confirm();
@@ -131,7 +146,7 @@ public class TitleScreen extends Screen {
 
 	/**
 	 * Handles input while the exit confirmation is open. The cursor starts on
-	 * No, so a second space press cannot close the game by accident.
+	 * No, so a second Space or Enter press cannot close the game by accident.
 	 */
 	private void updateExitConfirm() {
 		if (inputManager.isKeyDown(KeyEvent.VK_LEFT)
@@ -142,13 +157,29 @@ public class TitleScreen extends Screen {
 			this.selectionCooldown.reset();
 		}
 		if (inputManager.isKeyDown(KeyEvent.VK_SPACE)
-				|| inputManager.isKeyDown(KeyEvent.VK_ENTER)) {
-			if (this.exitConfirmYes) {
-				this.returnCode = MenuItem.EXIT.getCode();
-				this.isRunning = false;
-			} else
-				closeExitConfirm();
+				|| inputManager.isKeyDown(KeyEvent.VK_ENTER))
+			answerExitConfirm();
+
+		if (inputManager.isMousePressed()) {
+			final Boolean answer = drawManager.exitConfirmAnswerAt(this,
+					inputManager.getMouseX(), inputManager.getMouseY());
+			if (answer != null) {
+				this.exitConfirmYes = answer;
+				answerExitConfirm();
+			}
 		}
+	}
+
+	/**
+	 * Acts on the answer the cursor is on. Every way of answering - Space,
+	 * Enter or a mouse click - goes through here.
+	 */
+	private void answerExitConfirm() {
+		if (this.exitConfirmYes) {
+			this.returnCode = MenuItem.EXIT.getCode();
+			this.isRunning = false;
+		} else
+			closeExitConfirm();
 	}
 
 	/**
@@ -174,10 +205,10 @@ public class TitleScreen extends Screen {
 
 	/**
 	 * Chooses the item the cursor is on and closes the screen, so Core opens
-	 * the screen behind it. Every way of choosing an item - space today, a
-	 * mouse click later - goes through here. Items without a screen are
-	 * ignored, and Exit opens the confirmation instead of closing the game,
-	 * so every way of choosing Exit is confirmed.
+	 * the screen behind it. Every way of choosing an item - Space, Enter or a
+	 * mouse click - goes through here. Disabled items are ignored, and Exit
+	 * opens the confirmation instead of closing the game, so every way of
+	 * choosing Exit is confirmed.
 	 */
 	private void confirm() {
 		if (!this.selected.isEnabled())
@@ -192,12 +223,14 @@ public class TitleScreen extends Screen {
 		this.returnCode = this.selected.getCode();
 		this.isRunning = false;
 	}
+
 	/**
 	 * Draws the elements associated with the screen.
 	 */
 	private void draw() {
 		drawManager.initDrawing(this);
 
+		drawManager.drawStarfield(this, starfield);
 		drawManager.drawTitle(this);
 		drawManager.drawMenu(this, this.selected);
 		drawManager.drawKeyHints(this, keyHints());
