@@ -69,7 +69,7 @@ public final class DrawManager {
 	/** Big sized font properties. */
 	private static FontMetrics fontBigMetrics;
 
-		/** Font used for the highlighted menu item. */
+	/** Font used for the highlighted menu item. */
 	private static Font fontSelected;
 	/** Highlighted menu item font properties. */
 	private static FontMetrics fontSelectedMetrics;
@@ -109,18 +109,18 @@ public final class DrawManager {
 		ShipTwoWay,
 		/** First Flight achievement icon. */
 		FirstFlight,
-        /** Fast Attack player ship. */
-        ShipFastAttack,
-        /** Big Bullet player ship. */
-        ShipBigBullet,
+		/** Fast Attack player ship. */
+		ShipFastAttack,
+		/** Big Bullet player ship. */
+		ShipBigBullet,
 		/** Fleet Master achievement icon. */
 		FleetMaster,
 		/** Weakestship sprite. */
 		Weakestship,
 		/** Infinity Void achievement icon. */
 		InfinityVoid,
-        /** First Boss Kill achievement icon. */
-        BossKill
+		/** First Boss Kill achievement icon. */
+		BossKill
 	};
 
 	/**
@@ -134,6 +134,10 @@ public final class DrawManager {
 		try {
 			spriteMap = new LinkedHashMap<SpriteType, boolean[][]>();
 
+			// Order must match res/graphics exactly. Keep the same groups in
+			// both files, and add a new sprite to the end of its team's group.
+
+			// Base game
 			spriteMap.put(SpriteType.Ship, new boolean[13][8]);
 			spriteMap.put(SpriteType.ShipDestroyed, new boolean[13][8]);
 			spriteMap.put(SpriteType.Bullet, new boolean[3][5]);
@@ -146,15 +150,19 @@ public final class DrawManager {
 			spriteMap.put(SpriteType.EnemyShipC2, new boolean[12][8]);
 			spriteMap.put(SpriteType.EnemyShipSpecial, new boolean[16][7]);
 			spriteMap.put(SpriteType.Explosion, new boolean[13][7]);
+
+			// Player ships (A1)
 			spriteMap.put(SpriteType.ShipFastMove, new boolean[13][8]);
 			spriteMap.put(SpriteType.ShipTwoWay, new boolean[13][8]);
+			spriteMap.put(SpriteType.ShipFastAttack, new boolean[13][8]);
+			spriteMap.put(SpriteType.ShipBigBullet, new boolean[13][8]);
+
+			// Achievements (Mantis)
 			spriteMap.put(SpriteType.FirstFlight, new boolean[11][8]);
-            spriteMap.put(SpriteType.ShipFastAttack, new boolean[13][8]);
-            spriteMap.put(SpriteType.ShipBigBullet, new boolean[13][8]);
 			spriteMap.put(SpriteType.FleetMaster, new boolean[23][23]);
 			spriteMap.put(SpriteType.Weakestship, new boolean[11][11]);
 			spriteMap.put(SpriteType.InfinityVoid, new boolean[11][11]);
-            spriteMap.put(SpriteType.BossKill, new boolean[11][11]);
+			spriteMap.put(SpriteType.BossKill, new boolean[11][11]);
 
 			fileManager.loadSprite(spriteMap);
 			logger.info("Finished loading the sprites.");
@@ -165,7 +173,7 @@ public final class DrawManager {
 			logger.info("Finished loading the fonts.");
 
 		} catch (IOException e) {
-			logger.warning("Loading failed.");
+			logger.warning("Loading failed: " + e.getMessage());
 			fontRegular = new Font(Font.MONOSPACED, Font.PLAIN, 14);
 			fontBig = new Font(Font.MONOSPACED, Font.PLAIN, 24);
 		} catch (FontFormatException e) {
@@ -233,7 +241,7 @@ public final class DrawManager {
 
 		fontRegularMetrics = backBufferGraphics.getFontMetrics(fontRegular);
 		fontBigMetrics = backBufferGraphics.getFontMetrics(fontBig);
-				fontSelectedMetrics = backBufferGraphics.getFontMetrics(fontSelected);
+		fontSelectedMetrics = backBufferGraphics.getFontMetrics(fontSelected);
 
 		// drawBorders(screen);
 		// drawGrid(screen);
@@ -280,7 +288,7 @@ public final class DrawManager {
 	 *            Coordinates for the upper side of the image.
 	 */
 	public void drawEntity(final Entity entity, final int positionX,
-			final int positionY) {
+						   final int positionY) {
 		// Enemy ships can be see-through while flickering / fading out.
 		float alpha = 1f;
 		if (entity instanceof EnemyShip)
@@ -329,7 +337,7 @@ public final class DrawManager {
 	 * @param color     Colour of the text.
 	 */
 	public void drawRegularString(final String string, final int positionX,
-			final int positionY, final Color color) {
+								  final int positionY, final Color color) {
 		backBufferGraphics.setFont(fontRegular);
 		backBufferGraphics.setColor(color);
 		backBufferGraphics.drawString(string, positionX, positionY);
@@ -345,7 +353,7 @@ public final class DrawManager {
 	 * @param color     Colour of the outline.
 	 */
 	public void drawBox(final int positionX, final int positionY,
-			final int width, final int height, final Color color) {
+						final int width, final int height, final Color color) {
 		backBufferGraphics.setColor(color);
 		backBufferGraphics.drawRect(positionX, positionY, width, height);
 	}
@@ -363,7 +371,7 @@ public final class DrawManager {
 	 *            Coordinates for the upper side of the coin.
 	 */
 	public void drawCoin(final Coin coin, final int positionX,
-			final int positionY) {
+						 final int positionY) {
 		backBufferGraphics.setColor(coin.getColor());
 		backBufferGraphics.fillOval(positionX, positionY, coin.getWidth(),
 				coin.getHeight());
@@ -513,20 +521,20 @@ public final class DrawManager {
 	 */
 	private static String shortItemName(final ItemAPI.EffectKind kind) {
 		switch (kind) {
-		case RAPID_FIRE:
-			return "RF";
-		case BULLET_SPEED:
-			return "BS";
-		case SHIELD:
-			return "SH";
-		case FREEZE:
-			return "FZ";
-		case BOOST:
-			return "BO";
-		case SCORE_BOOST:
-			return "SC";
-		default:
-			return kind.name();
+			case RAPID_FIRE:
+				return "RF";
+			case BULLET_SPEED:
+				return "BS";
+			case SHIELD:
+				return "SH";
+			case FREEZE:
+				return "FZ";
+			case BOOST:
+				return "BO";
+			case SCORE_BOOST:
+				return "SC";
+			default:
+				return kind.name();
 		}
 	}
 
@@ -556,7 +564,7 @@ public final class DrawManager {
 	 *            Baseline Y coordinate of the text.
 	 */
 	public void drawCoinBalance(final Screen screen, final int coins,
-			final int positionY) {
+								final int positionY) {
 		final int iconSize = 14;
 		final int iconTextGap = 6;
 
@@ -587,7 +595,7 @@ public final class DrawManager {
 	 *            Baseline Y coordinate of the text.
 	 */
 	public void drawDiamondBalance(final Screen screen, final int diamonds,
-			final int positionY) {
+								   final int positionY) {
 		final int iconSize = 14;
 		final int iconTextGap = 6;
 
@@ -734,7 +742,7 @@ public final class DrawManager {
 		backBufferGraphics.setColor(Color.WHITE);
 		backBufferGraphics.drawString("LIVES", 20, 25);
 
-		Ship dummyShip = new Ship(0, 0);
+		Ship dummyShip = new Ship(0, 0, Core.getSelectedShipType());
 		for (int i = 0; i < lives; i++)
 			drawEntity(dummyShip, 20 + LIVES_LABEL_WIDTH
 					+ LIVES_ICON_SPACING * i, 10);
@@ -823,7 +831,7 @@ public final class DrawManager {
 	 *            Index of the option the cursor is on.
 	 */
 	public void drawPauseMenu(final Screen screen, final String[] options,
-			final int selectedIndex) {
+							  final int selectedIndex) {
 		String title = "PAUSED";
 
 		int spacing = menuItemSpacing();
@@ -990,7 +998,7 @@ public final class DrawManager {
 	 *            Whether the cursor is on Yes.
 	 */
 	public void drawExitConfirm(final Screen screen,
-			final boolean yesSelected) {
+								final boolean yesSelected) {
 		String question = "Really quit?";
 		String yesString = "Yes";
 		String noString = "No";
@@ -1038,7 +1046,7 @@ public final class DrawManager {
 	 *         the answer row or nothing has been drawn yet.
 	 */
 	public Boolean exitConfirmAnswerAt(final Screen screen,
-			final int positionX, final int positionY) {
+									   final int positionX, final int positionY) {
 		if (fontRegularMetrics == null)
 			return null;
 		int spacing = menuItemSpacing();
@@ -1110,9 +1118,9 @@ public final class DrawManager {
 	 * @param slideOutMilliseconds Slide-out duration.
 	 */
 	public void drawAchievementUnlocked(final Screen screen,
-			final Achievement achievement, final long elapsedMilliseconds,
-			final int durationMilliseconds, final int slideInMilliseconds,
-			final int slideOutMilliseconds) {
+										final Achievement achievement, final long elapsedMilliseconds,
+										final int durationMilliseconds, final int slideInMilliseconds,
+										final int slideOutMilliseconds) {
 		int boxWidth = 218;
 		int boxHeight = 44;
 		int visibleX = screen.getWidth() - boxWidth - 6;
@@ -1136,8 +1144,19 @@ public final class DrawManager {
 		backBufferGraphics.setColor(Color.GREEN);
 		backBufferGraphics.drawString("ACHIEVEMENT UNLOCKED", boxX + 34,
 				boxY + 16);
-		drawSprite(achievement.getSpriteType(),
-				boxX + 8, boxY + 20, achievement.getIconColor());
+		if (achievement.getSpriteType() == SpriteType.FleetMaster) {
+			drawSmallSprite(
+					achievement.getSpriteType(),
+					boxX + 8,
+					boxY + (boxHeight - 23) / 2,
+					Color.WHITE);
+		} else {
+			drawSprite(
+					achievement.getSpriteType(),
+					boxX + 8,
+					boxY + 20,
+					achievement.getIconColor());
+		}
 		backBufferGraphics.setColor(Color.WHITE);
 		backBufferGraphics.drawString(achievement.getName(), boxX + 34,
 				boxY + 35);
@@ -1150,7 +1169,7 @@ public final class DrawManager {
 	 * @param achievement Achievement to display.
 	 */
 	public void drawAchievement(final Screen screen,
-			final Achievement achievement) {
+								final Achievement achievement) {
 		int iconX = screen.getWidth() / 5;
 		int contentX = iconX + 40;
 		int nameY = screen.getHeight() / 2;
@@ -1165,7 +1184,7 @@ public final class DrawManager {
 				contentX, nameY);
 		backBufferGraphics.setColor(Color.GRAY);
 		backBufferGraphics.drawString(Core.getAchievementManager()
-				.getRequirementText(achievement), contentX,
+						.getRequirementText(achievement), contentX,
 				nameY + fontRegularMetrics.getHeight() * 2);
 	}
 	/**Draw smaller sprite in achievement
@@ -1240,8 +1259,8 @@ public final class DrawManager {
 	 *            If the score is a new high score.
 	 */
 	public void drawResults(final Screen screen, final int score,
-			final int livesRemaining, final int shipsDestroyed,
-			final float accuracy, final boolean isNewRecord) {
+							final int livesRemaining, final int shipsDestroyed,
+							final float accuracy, final boolean isNewRecord) {
 		String scoreString = String.format("score %04d", score);
 		String livesRemainingString = "lives remaining " + livesRemaining;
 		String shipsDestroyedString = "enemies destroyed " + shipsDestroyed;
@@ -1274,7 +1293,7 @@ public final class DrawManager {
 	 *            Current character selected for modification.
 	 */
 	public void drawNameInput(final Screen screen, final char[] name,
-			final int nameCharSelected) {
+							  final int nameCharSelected) {
 		String newRecordString = "New Record!";
 		String introduceNameString = "Introduce name:";
 
@@ -1289,9 +1308,9 @@ public final class DrawManager {
 		int positionX = screen.getWidth()
 				/ 2
 				- (fontRegularMetrics.getWidths()[name[0]]
-						+ fontRegularMetrics.getWidths()[name[1]]
-						+ fontRegularMetrics.getWidths()[name[2]]
-								+ fontRegularMetrics.getWidths()[' ']) / 2;
+				+ fontRegularMetrics.getWidths()[name[1]]
+				+ fontRegularMetrics.getWidths()[name[2]]
+				+ fontRegularMetrics.getWidths()[' ']) / 2;
 
 		for (int i = 0; i < 3; i++) {
 			if (i == nameCharSelected)
@@ -1302,8 +1321,8 @@ public final class DrawManager {
 			positionX += fontRegularMetrics.getWidths()[name[i]] / 2;
 			positionX = i == 0 ? positionX
 					: positionX
-							+ (fontRegularMetrics.getWidths()[name[i - 1]]
-									+ fontRegularMetrics.getWidths()[' ']) / 2;
+					+ (fontRegularMetrics.getWidths()[name[i - 1]]
+					+ fontRegularMetrics.getWidths()[' ']) / 2;
 
 			backBufferGraphics.drawString(Character.toString(name[i]),
 					positionX,
@@ -1323,7 +1342,7 @@ public final class DrawManager {
 	 *            If the score is a new high score.
 	 */
 	public void drawGameOver(final Screen screen, final boolean acceptsInput,
-			final boolean isNewRecord) {
+							 final boolean isNewRecord) {
 		String gameOverString = "Game Over";
 		String continueOrExitString =
 				"Press Space to play again, Escape to exit";
@@ -1369,7 +1388,7 @@ public final class DrawManager {
 	 *            List of high scores.
 	 */
 	public void drawHighScores(final Screen screen,
-			final List<Score> highScores) {
+							   final List<Score> highScores) {
 		backBufferGraphics.setColor(Color.WHITE);
 		int i = 0;
 		String scoreString = "";
@@ -1394,7 +1413,7 @@ public final class DrawManager {
 	 *            Height of the drawing.
 	 */
 	public void drawCenteredRegularString(final Screen screen,
-			final String string, final int height) {
+										  final String string, final int height) {
 		backBufferGraphics.setFont(fontRegular);
 		backBufferGraphics.drawString(string, screen.getWidth() / 2
 				- fontRegularMetrics.stringWidth(string) / 2, height);
@@ -1411,7 +1430,7 @@ public final class DrawManager {
 	 *            Height of the drawing.
 	 */
 	public void drawCenteredBigString(final Screen screen, final String string,
-			final int height) {
+									  final int height) {
 		backBufferGraphics.setFont(fontBig);
 		backBufferGraphics.drawString(string, screen.getWidth() / 2
 				- fontBigMetrics.stringWidth(string) / 2, height);
@@ -1468,7 +1487,7 @@ public final class DrawManager {
 	 *            Number of characters typed so far.
 	 */
 	public void drawGameOverBanner(final Screen screen, final String text,
-			final int visibleChars) {
+								   final int visibleChars) {
 		backBufferGraphics.setColor(Color.GREEN);
 		backBufferGraphics.setFont(fontBig);
 		backBufferGraphics.drawString(
@@ -1507,7 +1526,7 @@ public final class DrawManager {
 	 *            Checks if a bonus life is received.
 	 */
 	public void drawCountDown(final Screen screen, final int level,
-			final int number, final boolean bonusLife) {
+							  final int number, final boolean bonusLife) {
 		int rectWidth = screen.getWidth();
 		int rectHeight = screen.getHeight() / 6;
 		backBufferGraphics.setColor(Color.BLACK);
@@ -1518,12 +1537,12 @@ public final class DrawManager {
 			if (!bonusLife) {
 				drawCenteredBigString(screen, "Level " + level,
 						screen.getHeight() / 2
-						+ fontBigMetrics.getHeight() / 3);
+								+ fontBigMetrics.getHeight() / 3);
 			} else {
 				drawCenteredBigString(screen, "Level " + level
-						+ " - Bonus life!",
+								+ " - Bonus life!",
 						screen.getHeight() / 2
-						+ fontBigMetrics.getHeight() / 3);
+								+ fontBigMetrics.getHeight() / 3);
 			}
 		else if (number != 0)
 			drawCenteredBigString(screen, Integer.toString(number),
@@ -1547,7 +1566,7 @@ public final class DrawManager {
 	 *            Whether the row is currently selected.
 	 */
 	public void drawMenuRow(final Screen screen, final String string,
-			final int height, final boolean selected) {
+							final int height, final boolean selected) {
 		drawMenuRow(screen, string, height, selected, true);
 	}
 
@@ -1567,8 +1586,8 @@ public final class DrawManager {
 	 *            Whether the row can be chosen.
 	 */
 	public void drawMenuRow(final Screen screen, final String string,
-			final int height, final boolean selected,
-			final boolean enabled) {
+							final int height, final boolean selected,
+							final boolean enabled) {
 		if (selected)
 			backBufferGraphics.setColor(Color.GREEN);
 		else if (!enabled)
@@ -1588,7 +1607,7 @@ public final class DrawManager {
 	 *            Dim effect to draw.
 	 */
 	public void drawDamageDim(final Screen screen,
-			final DamageDimEffect effect) {
+							  final DamageDimEffect effect) {
 		if (effect != null)
 			effect.draw(backBufferGraphics, screen.getWidth(),
 					screen.getHeight());

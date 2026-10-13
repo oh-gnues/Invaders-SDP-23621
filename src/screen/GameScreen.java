@@ -302,7 +302,8 @@ public class GameScreen extends Screen {
 
 		enemyShipFormation = new EnemyShipFormation(this.gameSettings);
 		enemyShipFormation.attach(this);
-		this.ship = new Ship(this.width / 2, this.height - 30);
+		this.ship = new Ship(this.width / 2, this.height - 30,
+				Core.getSelectedShipType());
 		// Appears each 10-30 seconds.
 		this.enemyShipSpecialCooldown = Core.getVariableCooldown(
 				BONUS_SHIP_INTERVAL, BONUS_SHIP_VARIANCE);
@@ -492,6 +493,12 @@ public class GameScreen extends Screen {
 				collectRemainingCoins();
 				showUnlockedAchievement(Core.getAchievementManager()
 						.recordLevelCompleted(this.level));
+
+				showUnlockedAchievement(Core.getAchievementManager()
+						.recordLevelCompleted(
+								this.level,
+								Core.getShipId(this.ship.getType()),
+								true));
 
 				// Last level cleared alive: the game is beaten.
 				if (this.level == Core.getNumLevels())
