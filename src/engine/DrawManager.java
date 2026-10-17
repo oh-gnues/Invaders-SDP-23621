@@ -109,12 +109,13 @@ public final class DrawManager {
 		ShipFastMove,
 		/** Player ship that shoots from two barrels (Two-Way Shot). */
 		ShipTwoWay,
-		/** First Flight achievement icon. */
-		FirstFlight,
 		/** Fast Attack player ship. */
 		ShipFastAttack,
 		/** Big Bullet player ship. */
 		ShipBigBullet,
+
+		/** First Flight achievement icon. */
+		FirstFlight,
 		/** Fleet Master achievement icon. */
 		FleetMaster,
 		/** Weakestship sprite. */
@@ -122,7 +123,20 @@ public final class DrawManager {
 		/** Infinity Void achievement icon. */
 		InfinityVoid,
 		/** First Boss Kill achievement icon. */
-		BossKill
+		BossKill,
+
+		/** Achievement trophy icon. */
+		Trophy,
+		/** Enemies killed achievement icon. */
+		Hunter,
+		/** Accuracy target achievement icon. */
+		Accuracytarget,
+        /** Currency collected in one run achievement icon**/
+        Looter,
+        /** Item used achievement icon. */
+		ItemCol
+
+
 	};
 
 	/**
@@ -165,6 +179,13 @@ public final class DrawManager {
 			spriteMap.put(SpriteType.Weakestship, new boolean[11][11]);
 			spriteMap.put(SpriteType.InfinityVoid, new boolean[11][11]);
 			spriteMap.put(SpriteType.BossKill, new boolean[11][11]);
+			spriteMap.put(SpriteType.Hunter, new boolean[13][12]);
+			spriteMap.put(SpriteType.Trophy, new boolean[11][8]);
+			spriteMap.put(SpriteType.Accuracytarget, new boolean[11][11]);
+            spriteMap.put(SpriteType.Looter, new boolean[11][11]);
+			spriteMap.put(SpriteType.ItemCol, new boolean[12][12]);
+
+
 
 			fileManager.loadSprite(spriteMap);
 			logger.info("Finished loading the sprites.");
@@ -1637,7 +1658,6 @@ public final class DrawManager {
 			drawCenteredRegularString(screen, string, height);
 		}
 	}
-
 	/**
 	 * Draws the damage dim overlay when the player is hit.
 	 *AUTHORED BY: VFX TEAM (Effection)
@@ -1667,7 +1687,7 @@ public final class DrawManager {
 			effect.draw(backBuffer, backBufferGraphics);
 	}
 
-	
+
 	/**
 	 * Draws the points shown when enemies are destroyed.
 	 * AUTHORED BY: VFX TEAM (Effection)
