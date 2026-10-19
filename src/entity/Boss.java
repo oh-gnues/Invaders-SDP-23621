@@ -7,6 +7,10 @@ import engine.GameSettings;
 public interface Boss {
     int getPositionX();
     int getPositionY();
+    /** Current remaining health points. */
+    int getHp();
+    /** Health points this boss starts an encounter with. */
+    int getMaxHp();
     boolean isDestroyed();
     void destroy();
     void update();

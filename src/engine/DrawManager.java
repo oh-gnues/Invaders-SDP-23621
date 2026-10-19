@@ -18,6 +18,7 @@ import java.util.logging.Logger;
 import screen.MenuItem;
 import screen.Screen;
 import screen.Starfield;
+import entity.Boss;
 import entity.Coin;
 import entity.DiamondDrop;
 import entity.Entity;
@@ -656,6 +657,36 @@ public final class DrawManager {
 				+ iconTextGap, positionY);
 	}
 
+/** Width of the boss health bar, as a fraction of the screen width. */
+	private static final double BOSS_BAR_WIDTH_RATIO = 0.5;
+	/** Height, in pixels, of the boss health bar. */
+	private static final int BOSS_BAR_HEIGHT = 8;
+	/** Gap between the "BOSS" label baseline and the top of the bar. */
+	private static final int BOSS_BAR_GAP = 4;
+	
+	/** Draws the current boss's remaining health as a labelled bar below the item HUD, so the player can track a Stage 5 (MidBoss) or Stage 10 (FinalBoss) encounter at a glance (Requirement 8 - Gameplay HUD). Boss may be null when the stage has no boss or it has already been defeated. */
+	public void drawBossHealthBar(final Screen screen, final Boss boss, final int positionY) {
+		if (boss == null || boss.isDestroyed())
+			return;
+		
+		int maxHp = Math.max(1, boss.getMaxHp());
+		int hp = Math.max(0, Math.min(boss.getHp(), maxHp));
+		
+		int barWidth = (int) (screen.getWidth() * BOSS_BAR_WIDTH_RATIO);
+		int barX = (screen.getWidth() - barWidth) / 2;
+		int barY = positionY + BOSS_BAR_GAP;
+		int filledWidth = barWidth * hp / maxHp;
+		
+		backBufferGraphics.setFont(fontRegular);
+		backBufferGraphics.setColor(Color.WHITE);
+		drawCenteredRegularString(screen, "BOSS", positionY);
+		
+		backBufferGraphics.setColor(Color.RED);
+		backBufferGraphics.drawRect(barX, barY, barWidth, BOSS_BAR_HEIGHT);
+		if (filledWidth > 0)
+			backBufferGraphics.fillRect(barX, barY, filledWidth, BOSS_BAR_HEIGHT);
+	}
+	
 	/**
 	 * Draws a sparkle, see-through according to its age.
 	 * AUTHORED BY: VFX TEAM (Effection)

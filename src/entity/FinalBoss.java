@@ -134,6 +134,24 @@ public class FinalBoss extends Entity implements Boss {
 	}
 
 	/**
+	 * Getter for the boss's current remaining health points.
+	  *
+	   * @return Current health points.
+	    */
+	public final int getHp() {
+		return this.hp;
+	}
+
+	/**
+	 * Getter for the health points this boss starts an encounter with.
+	  *
+	   * @return Maximum health points.
+	    */
+	public final int getMaxHp() {
+		return FINAL_BOSS_HP;
+	}
+
+	/**
 	 * Destroys the ship, causing an explosion.
 	 */
 	public final void destroy() {
