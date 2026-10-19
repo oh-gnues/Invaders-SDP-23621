@@ -23,8 +23,9 @@ import shop.ShopItem;
 import shop.Skin;
 
 /**
- * The shop (GoG - Currency System). Four tabs: Ships, Skins, Upgrades and
- * the Night Market. The left side lists what is for sale, the right side
+ * The shop (GoG - Currency System). Five tabs: Ships, Skins, Upgrades,
+ *  Effects (VFX team) and Night Market Place Holder.
+ * The left side lists what is for sale, the right side
  * shows the selected entry with its price and BUY buttons.
  *
  * Skins and upgrades can be paid with coins or diamonds, so they get one
@@ -49,8 +50,11 @@ public class ShopScreen extends Screen {
 		SKINS("Skins", Color.CYAN),
 		/** Item team upgrades. */
 		UPGRADES("Upgrades", new Color(255, 200, 0)),
+		/** Placeholder for visual effects. */
+		EFFECTS("Effects", new Color(255, 140, 0)),
 		/** Today's discounts. */
 		NIGHT_MARKET("Night Mkt", new Color(255, 80, 255));
+		
 
 		/** Text on the tab. */
 		private final String title;
@@ -304,6 +308,9 @@ public class ShopScreen extends Screen {
 		case UPGRADES:
 			addAll(result, ShopCatalog.getByCategory(ShopCategory.UPGRADE));
 			break;
+		case EFFECTS:
+			addAll(result, ShopCatalog.getByCategory(ShopCategory.EFFECT));
+			break;
 		default:
 			for (ShopItem item : NightMarket.getListings())
 				result.add(new Entry(item, true));
@@ -379,6 +386,8 @@ public class ShopScreen extends Screen {
 	private static String afterBuying(final ShopItem item) {
 		if (item.getCategory() == ShopCategory.UPGRADE)
 			return "It is on.";
+		if (item.getCategory() == ShopCategory.EFFECT)
+			return "It is on. Switch it off in Customize.";
 		return "Choose it in Customize.";
 	}
 
@@ -523,6 +532,11 @@ public class ShopScreen extends Screen {
 
 	private void drawList() {
 		if (this.entries.isEmpty()) {
+			if (this.tab == Tab.EFFECTS) {
+				drawEffectsPlaceholderRow();
+				drawLightningPlaceholderRow();
+				return;
+			}
 			this.drawManager.drawSmallString("Nothing for sale here.",
 					MARGIN + 6, bodyTop() + 18, Color.GRAY);
 			return;
@@ -628,8 +642,11 @@ public class ShopScreen extends Screen {
 		Rectangle area = detailArea();
 		this.drawManager.drawBox(area.x, area.y, area.width, area.height,
 				BORDER);
-		if (this.entries.isEmpty())
+		if (this.entries.isEmpty()) {
+			if (this.tab == Tab.EFFECTS)
+				drawEffectsPlaceholderDetail(area);
 			return;
+		}
 
 		Entry entry = this.entries.get(this.selected);
 		ShopItem item = entry.item;
@@ -714,6 +731,227 @@ public class ShopScreen extends Screen {
 	}
 
 	/**
+	 * Placeholder row in the Effects tab until effects are sold.
+	 * AUTHORED BY: VFX TEAM (Effection)
+	 */
+	private void drawEffectsPlaceholderRow() {
+		Rectangle row = rowArea(0);
+		this.drawManager.drawBox(row.x, row.y, row.width, row.height,
+				BORDER);
+		this.drawManager.drawSmallString("COMET TRAIL", row.x + 8,
+				row.y + 18, Color.GRAY);
+		String soon = "SOON";
+		this.drawManager.drawSmallString(soon, row.x + row.width - 8
+				- this.drawManager.getSmallStringWidth(soon), row.y + 18,
+				Tab.EFFECTS.color);
+	}
+
+	/**
+	 * Placeholder row for Lightning Chain until it is sold.
+	 * AUTHORED BY: VFX TEAM (Effection)
+	 */
+	private void drawLightningPlaceholderRow() {
+		Rectangle row = rowArea(1);
+		this.drawManager.drawBox(row.x, row.y, row.width, row.height,
+				BORDER);
+		this.drawManager.drawSmallString("LIGHTNING CHAIN", row.x + 8,
+				row.y + 18, Color.GRAY);
+		String soon = "SOON";
+		this.drawManager.drawSmallString(soon, row.x + row.width - 8
+				- this.drawManager.getSmallStringWidth(soon), row.y + 18,
+				Tab.EFFECTS.color);
+	}
+
+	/**
+	 * Placeholder detail panel in the Effects tab until effects are sold.
+	 * AUTHORED BY: VFX TEAM (Effection)
+	 *
+	 * @param area
+	 *            Detail panel area.
+	 */
+	private void drawEffectsPlaceholderDetail(final Rectangle area) {
+		int centerX = area.x + area.width / 2;
+		String name = "Comet Trail";
+		this.drawManager.drawRegularString(name, centerX
+				- this.drawManager.getRegularStringWidth(name) / 2,
+				area.y + 22, Tab.EFFECTS.color);
+		drawCometTrailPreview(centerX, area.y + 36);
+		int y = area.y + 94;
+		drawCentered("BULLET EFFECT", centerX, y, Color.GRAY);
+		y += this.drawManager.getSmallLineHeight() + 4;
+		drawCentered("COMING SOON", centerX, y, Color.WHITE);
+	}
+
+	/** Trail colours, hot to cool. AUTHORED BY: VFX TEAM (Effection) */
+	private static final Color[] TRAIL_COLORS = {
+			new Color(255, 214, 64), new Color(255, 170, 40),
+			new Color(255, 140, 26), new Color(224, 80, 26),
+			new Color(168, 50, 14) };
+
+	/**
+	 * Animated preview: the selected ship fires one bullet with a comet
+	 * trail, looping. AUTHORED BY: VFX TEAM (Effection)
+	 *
+	 * @param centerX
+	 *            Horizontal centre of the preview.
+	 * @param top
+	 *            Top of the preview.
+	 */
+	private void drawCometTrailPreview(final int centerX, final int top) {
+		PurchaseManager purchases = PurchaseManager.getInstance();
+		long now = System.currentTimeMillis();
+		final int pixel = 3;
+
+		// Ship in the selected skin colour.
+		SpriteType shipSprite = purchases.getSelectedShip().getIdleSprite();
+		int[] size = this.drawManager.getSpriteSize(shipSprite);
+		int shipY = top + 26;
+		this.drawManager.drawSpriteScaled(shipSprite,
+				centerX - size[0] * pixel / 2, shipY, pixel,
+				purchases.getSelectedSkin().colorAt(now));
+
+		// Bullet flies up 26 px, then loops (700 ms).
+		float k = (now % 700) / 700f;
+		int bulletX = centerX - 3;
+		int bulletY = shipY - 10 - (int) (k * 26);
+
+		// Trail: small fading blocks under the bullet.
+		for (int i = TRAIL_COLORS.length; i >= 1; i--) {
+			int trailY = bulletY + 10 + (i - 1) * 4;
+			if (trailY + 4 > shipY - 1)
+				continue;
+			Color base = TRAIL_COLORS[i - 1];
+			int alpha = (int) (200 * (1f - i / (TRAIL_COLORS.length + 1f)));
+			int w = Math.max(2, 6 - i);
+			this.drawManager.fillBox(centerX - w / 2, trailY, w, 4,
+					new Color(base.getRed(), base.getGreen(),
+							base.getBlue(), alpha));
+		}
+
+		// Soft glow + bright bullet.
+		this.drawManager.fillBox(bulletX - 2, bulletY - 2, 10, 14,
+				new Color(255, 176, 64, 80));
+		this.drawManager.drawSpriteScaled(SpriteType.Bullet, bulletX,
+				bulletY, 2, new Color(255, 246, 208));
+	}
+
+	/** Lightning tier colours. AUTHORED BY: VFX TEAM (Effection) */
+	private static final Color[] LIGHTNING_COLORS = {
+			new Color(79, 184, 255), new Color(176, 107, 255),
+			new Color(255, 200, 61) };
+
+	/**
+	 * Animated preview: a shot kills the middle enemy and lightning jumps
+	 * to its neighbours. Colour cycles through the streak tiers.
+	 * AUTHORED BY: VFX TEAM (Effection)
+	 *
+	 * @param centerX
+	 *            Horizontal centre of the preview.
+	 * @param top
+	 *            Top of the preview.
+	 */
+	private void drawLightningChainPreview(final int centerX, final int top) {
+		PurchaseManager purchases = PurchaseManager.getInstance();
+		long now = System.currentTimeMillis();
+		Color bolt = LIGHTNING_COLORS[(int) (now / 1200 % 3)];
+		float k = (now % 1200) / 1200f;
+		int enemyY = top + 4;
+		int shipY = top + 30;
+
+		// Ship in the selected skin colour.
+		SpriteType shipSprite = purchases.getSelectedShip().getIdleSprite();
+		int[] size = this.drawManager.getSpriteSize(shipSprite);
+		this.drawManager.drawSpriteScaled(shipSprite,
+				centerX - size[0] * 2 / 2, shipY, 2,
+				purchases.getSelectedSkin().colorAt(now));
+
+		// Left and right enemies; middle one only before the hit.
+		drawPreviewEnemy(centerX - 36, enemyY, k > 0.25f && k < 0.7f);
+		drawPreviewEnemy(centerX + 36, enemyY, k > 0.25f && k < 0.7f);
+		if (k < 0.25f) {
+			drawPreviewEnemy(centerX, enemyY, false);
+			int bulletY = shipY - 4 - (int) (k / 0.25f * (shipY - enemyY - 8));
+			this.drawManager.fillBox(centerX - 1, bulletY, 2, 6, Color.WHITE);
+		} else if (k < 0.7f && (now / 50) % 3 != 2) {
+			drawPixelBolt(centerX, enemyY + 4, centerX - 36, enemyY + 4, bolt);
+			drawPixelBolt(centerX, enemyY + 4, centerX + 36, enemyY + 4, bolt);
+		}
+	}
+
+	/** Small white enemy block; blue tint when shocked. */
+	private void drawPreviewEnemy(final int x, final int y,
+			final boolean shocked) {
+		int jitter = shocked ? (int) (System.nanoTime() / 30000000 % 3) - 1 : 0;
+		Color c = shocked ? new Color(200, 230, 255) : Color.WHITE;
+		this.drawManager.fillBox(x - 8 + jitter, y, 16, 8, c);
+		this.drawManager.fillBox(x - 5 + jitter, y + 2, 3, 3, Color.BLACK);
+		this.drawManager.fillBox(x + 2 + jitter, y + 2, 3, 3, Color.BLACK);
+	}
+
+	/** Jagged pixel bolt between two points: glow + bright core. */
+	private void drawPixelBolt(final int x1, final int y1, final int x2,
+			final int y2, final Color color) {
+		Color glow = new Color(color.getRed(), color.getGreen(),
+				color.getBlue(), 90);
+		int steps = 8;
+		int px = x1;
+		int py = y1;
+		for (int i = 1; i <= steps; i++) {
+			int nx = x1 + (x2 - x1) * i / steps;
+			int ny = y1 + (y2 - y1) * i / steps
+					+ (i < steps ? (int) (Math.random() * 9) - 4 : 0);
+			for (int s = 0; s <= 4; s++) {
+				int bx = px + (nx - px) * s / 4;
+				int by = py + (ny - py) * s / 4;
+				this.drawManager.fillBox(bx - 2, by - 2, 4, 4, glow);
+				this.drawManager.fillBox(bx, by, 1, 1, Color.WHITE);
+			}
+			px = nx;
+			py = ny;
+		}
+	}
+
+	/**
+	 * Preview for an effect item, chosen by its effect id. Each effect
+	 * adds its own case. AUTHORED BY: VFX TEAM (Effection)
+	 *
+	 * @param item
+	 *            Effect item shown.
+	 * @param centerX
+	 *            Horizontal centre.
+	 * @param top
+	 *            Top of the preview.
+	 */
+	private void drawEffectPreview(final ShopItem item, final int centerX,
+	                               final int top) {
+		switch (item.getRef()) {
+			case "comet_trail":
+				drawCometTrailPreview(centerX, top);
+				break;
+			case "ghost_trail":
+				engine.GhostTrail.drawPreview(this.drawManager,
+						PurchaseManager.getInstance().getSelectedShip()
+								.getIdleSprite(),
+						PurchaseManager.getInstance().getSelectedSkin(),
+						centerX, top);
+				break;
+			case "lightning_chain":
+				drawLightningChainPreview(centerX, top);
+				break;
+			case "warp_in":
+				this.drawManager.drawWarpInPreview(PurchaseManager
+						.getInstance().getSelectedShip().getIdleSprite(),
+						PurchaseManager.getInstance().getSelectedSkin()
+								.colorAt(System.currentTimeMillis()),
+						centerX, top);
+				break;
+			default:
+				drawCentered("PREVIEW SOON", centerX, top + 30, Color.GRAY);
+				break;
+		}
+	}
+
+	/**
 	 * Big picture of the entry: the ship, the ship in the skin's colour, or
 	 * an item badge in the Item System's colour for it.
 	 *
@@ -745,6 +983,9 @@ public class ShopScreen extends Screen {
 					* pixel / 2, top + 6, pixel, color);
 			break;
 		}
+		case EFFECT:
+			drawEffectPreview(item, centerX, top);
+			break;
 		default: {
 			Color color = itemColor(item);
 			int badge = 30;
@@ -802,6 +1043,10 @@ public class ShopScreen extends Screen {
 			}
 			break;
 		}
+		case EFFECT:
+			lines.add(purchases.isOwned(item) ? "SWITCH ON/OFF IN CUSTOMIZE"
+					: "LOOK ONLY - NO STAT CHANGE");
+			break;
 		default:
 			break;
 		}

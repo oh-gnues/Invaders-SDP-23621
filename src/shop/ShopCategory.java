@@ -20,7 +20,13 @@ public enum ShopCategory {
 	 * soon as it is bought, switched on/off in Customize. Only one upgrade
 	 * can be on at once.
 	 */
-	UPGRADE("Upgrade");
+	UPGRADE("Upgrade"),
+	
+	/**
+	 * Visual effect (VFX team, Effection). Bought once, on in every run
+	 * once bought. Look only, no stat change.
+	 */
+	EFFECT("Effect");
 
 	/** Label shown in the shop's detail panel. */
 	private final String label;

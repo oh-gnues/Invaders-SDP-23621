@@ -22,6 +22,7 @@ import engine.GameSettings;
 import engine.GameState;
 import engine.Achievement;
 import engine.DamageDimEffect;
+import engine.LightningChain;
 import engine.GameEvents;
 import engine.GlitchEffect;
 import engine.PurchaseManager;
@@ -162,6 +163,8 @@ public class GameScreen extends Screen {
 	private EnemyShipFormation enemyShipFormation;
 	/** Player's ship. */
 	private Ship ship;
+	/** Warp In effect, null if not bought. AUTHORED BY: VFX TEAM (Effection) */
+	private engine.WarpIn warpIn;
 	/** Bonus enemy ship that appears sometimes. */
 	private EnemyShip enemyShipSpecial;
 	/** Minimum time between bonus ship appearances. */
@@ -238,14 +241,24 @@ public class GameScreen extends Screen {
 	private boolean tookDamage;
 	/** Dims the screen when the player is hit. */
 	private DamageDimEffect damageDim;
+	/** Lightning Chain kill effect. AUTHORED BY: VFX TEAM (Effection) */
+	private LightningChain lightningChain;
+	/** Test switch: java -Dvfx.lightning=true turns it on without buying. */
+	private static final boolean LIGHTNING_ON = Boolean.getBoolean("vfx.lightning");
+	/** True when Lightning Chain is bought and switched on (or the test switch is on). */
+	private boolean lightningOn;
 	/** Glitch effect for low health. */
 	private GlitchEffect glitch;
 	/** Screen shake when an enemy is destroyed. */
 	private ScreenShake screenShake;
+	/** True if Comet Trail is bought and switched on. AUTHORED BY: VFX TEAM (Effection) */
+	private boolean cometTrailOn;
 	/** Bonus meteor and its diamonds. AUTHORED BY: VFX TEAM (Effection) */
 	private MeteorManager meteors;
 	/** Points shown when enemies are destroyed. AUTHORED BY: VFX TEAM (Effection) */
 	private PointsEffect pointsEffect;
+	/** Ghost Trail ship effect, null if not bought or switched off. AUTHORED BY: VFX TEAM (Effection) */
+	private engine.GhostTrail ghostTrail;
 	/** Diamonds earned this run but not yet cashed out; lost on death,
 	 * banked into DiamondManager only when the player cashes out. */
 	private int pendingDiamonds;
@@ -362,14 +375,25 @@ public class GameScreen extends Screen {
 		this.prevLives = this.lives;
 		this.lowHealthActive = false;
 		this.bullets = new HashSet<Bullet>();
+		this.cometTrailOn = PurchaseManager.getInstance().isEffectOn("comet_trail"); // AUTHORED BY: VFX TEAM (Effection)
 		this.damageDim = new DamageDimEffect(900, 0.75f,
         new java.awt.Color(150, 0, 0));  //new update dim effect
 		GameEvents.subscribe(GameEvents.Type.PLAYER_HIT, this.damageDim);
+		this.lightningChain = new LightningChain(); // AUTHORED BY: VFX TEAM (Effection)
+		this.lightningOn = LIGHTNING_ON || PurchaseManager.getInstance().isEffectOn("lightning_chain");   // Lightning Chain, on unless switched off in Customize.
+		GameEvents.subscribe(GameEvents.Type.PLAYER_HIT, this.lightningChain);
 		this.glitch = new GlitchEffect();
 		this.screenShake = new ScreenShake();
 		this.meteors = new MeteorManager(this.level, this.width, this.height,SEPARATION_LINE_HEIGHT);
 		this.pointsEffect = new PointsEffect(SEPARATION_LINE_HEIGHT);
 		this.scoreBoostPopups = new ArrayList<long[]>(); // Item System (Team CS)
+		// Warp In effect, null if not bought or switched off. AUTHORED BY: VFX TEAM (Effection) */
+		if (PurchaseManager.getInstance().isEffectOn("warp_in")) {
+			this.warpIn = new engine.WarpIn();
+			this.warpIn.startLevel(INPUT_DELAY);
+		}
+		if (PurchaseManager.getInstance().isEffectOn("ghost_trail"))		// Ghost Trail, on unless switched off in Customize. AUTHORED BY: VFX TEAM (Effection)
+			this.ghostTrail = new engine.GhostTrail();
 		this.coins = new HashSet<Coin>();
 		this.coinsCollectedThisLevel = 0;
 		this.achievementPopupQueue = new LinkedList<Achievement>();
@@ -416,6 +440,7 @@ public class GameScreen extends Screen {
 			super.run();
 		} finally {
 			GameEvents.unsubscribe(GameEvents.Type.PLAYER_HIT, this.damageDim);
+			GameEvents.unsubscribe(GameEvents.Type.PLAYER_HIT, this.lightningChain);
 		}
 
 		this.items.endLevel(); // Item System (Team CS)
@@ -445,6 +470,9 @@ public class GameScreen extends Screen {
 				&& this.pauseKeyCooldown.checkFinished()) {
 			this.paused = !this.paused;
 			this.pauseKeyCooldown.reset();
+			// Ghost Trail starts fresh after a pause. AUTHORED BY: VFX TEAM (Effection)
+			if (this.ghostTrail != null)
+				this.ghostTrail.clear();
 			this.pauseSelection = PauseOption.RESUME;
 			this.logger.info(this.paused ? "Game paused" : "Game resumed");
 		}
@@ -528,6 +556,7 @@ public class GameScreen extends Screen {
 		showScoreBoostPopups(); // Item System (Team CS)
 		cleanBullets();
 		updateParticles(); // AUTHORED BY: VFX TEAM (Effection)
+		this.lightningChain.update();
 		updateCoins();
 		this.pendingDiamonds += this.meteors.update(this.ship, this.lives > 0); // VFX TEAM (Effection): updates the meteor and its diamonds, returns the diamonds to be added to pending
 		handleItemEvents();
@@ -809,6 +838,23 @@ public class GameScreen extends Screen {
 			// Ship, enemies, bullets and falling coins are hidden while
 			// paused, so the pause menu isn't cluttered by the frozen
 			// battlefield behind it - only the top HUD stays visible.
+			// Warp In draws the ship itself while it beams in. AUTHORED BY: VFX TEAM (Effection)
+			if (this.warpIn == null|| !this.warpIn.update(this.ship, this.lives > 0))
+				drawManager.drawEntity(this.ship, this.ship.getPositionX(),
+						this.ship.getPositionY());
+			drawManager.drawWarpIn(this.warpIn, this.ship,
+					this.skin.colorAt(System.currentTimeMillis()),
+					SEPARATION_LINE_HEIGHT);
+					if (this.warpIn != null && this.warpIn.takeImpact())
+						this.screenShake.trigger();
+			// Ghost Trail behind the ship, gone once the level ends (game over or level clear).
+   			//  AUTHORED BY: VFX TEAM (Effection)
+			if (this.ghostTrail != null && this.levelFinished)
+				this.ghostTrail.clear();
+			else if (this.ghostTrail != null)
+				this.ghostTrail.draw(drawManager, this.ship,
+						this.skin.colorAt(System.currentTimeMillis()),
+						engine.GhostTrail.isBoosting(this.items));
 			drawManager.drawEntity(this.ship, this.ship.getPositionX(),
 					this.ship.getPositionY());
 			drawManager.drawItemShield(this.ship, this.items); // Item System (Team CS)
@@ -827,14 +873,19 @@ if (this.midBoss != null) {
 		// Hit sparkles move with the game world.
 		drawManager.drawParticles(this, this.particles,
 				SEPARATION_LINE_HEIGHT);
+		drawManager.drawLightningChain(this.lightningChain);
 
-		for (Bullet bullet : this.bullets)
-			drawManager.drawEntity(bullet, bullet.getPositionX(),
-					bullet.getPositionY());
-
-		// Stop shake offset before full-screen dim.
-		drawManager.setWorldOffset(0, 0);
-		drawManager.drawDamageDim(this, this.damageDim);
+			for (Bullet bullet : this.bullets) {
+				// Comet trail, player bullets only. AUTHORED BY: VFX TEAM (Effection)
+				if (this.cometTrailOn && bullet.getSpeed() < 0)
+					drawManager.drawBulletTrail(bullet);
+				drawManager.drawEntity(bullet, bullet.getPositionX(),
+						bullet.getPositionY());
+			}
+			// Stop shake offset before full-screen dim.
+			drawManager.setWorldOffset(0, 0);
+			// Damage dim (under HUD, so score/lives stay bright). AUTHORED BY: VFX TEAM (Effection)
+			drawManager.drawDamageDim(this, this.damageDim);
 
 			// Coins are part of the game world, so they shake too.
 			drawManager.setWorldOffset(this.screenShake.getOffsetX(),
@@ -1003,6 +1054,11 @@ if (this.midBoss != null) {
 							this.shipsDestroyed++;
 							spawnSparkles(enemyShip);
 							this.enemyShipFormation.destroy(enemyShip);
+							if (this.lightningOn) // Lightning Chain. AUTHORED BY: VFX TEAM (Effection)
+								this.lightningChain.onKill(
+										enemyShip.getPositionX() + enemyShip.getWidth() / 2,
+										enemyShip.getPositionY() + enemyShip.getHeight() / 2,
+										aliveEnemyCenters());
 							this.screenShake.trigger();
 							this.pointsEffect.spawn(
 									enemyShip.getPositionX() + enemyShip.getWidth() / 2,
@@ -1045,6 +1101,19 @@ if (this.midBoss != null) {
 		}
 		this.bullets.removeAll(recyclable);
 		BulletPool.recycle(recyclable);
+	}
+
+	/**
+	 * @return Centers of all enemies that are still alive.
+	 *         AUTHORED BY: VFX TEAM (Effection)
+	 */
+	private java.util.List<java.awt.Point> aliveEnemyCenters() {
+		java.util.List<java.awt.Point> centers = new java.util.ArrayList<java.awt.Point>();
+		for (EnemyShip e : this.enemyShipFormation)
+			if (!e.isDestroyed())
+				centers.add(new java.awt.Point(e.getPositionX() + e.getWidth() / 2,
+						e.getPositionY() + e.getHeight() / 2));
+		return centers;
 	}
 
 	/**

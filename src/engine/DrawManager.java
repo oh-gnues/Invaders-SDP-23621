@@ -1680,6 +1680,31 @@ public final class DrawManager {
 	}
 
 	/**
+	 * Draws the comet trail behind a player bullet.
+	 * AUTHORED BY: VFX TEAM (Effection)
+	 *
+	 * @param bullet Player bullet.
+	 */
+	public void drawBulletTrail(final Entity bullet) {
+		if (bullet != null)
+			BulletTrail.draw(backBufferGraphics, bullet.getPositionX(),
+					bullet.getPositionY(), bullet.getWidth(),
+					bullet.getHeight());
+	}
+
+	/**
+	 * Draws the Lightning Chain kill effect.
+	 * AUTHORED BY: VFX TEAM (Effection)
+	 *
+	 * @param effect
+	 *            Effect to draw.
+	 */
+	public void drawLightningChain(final LightningChain effect) {
+		if (effect != null)
+			effect.draw(backBufferGraphics);
+	}
+
+	/**
 	 * Draws the low-health glitch effect.
 	 * AUTHORED BY: VFX TEAM (Effection)
 	 *Any further inquiries please contact us.
@@ -1705,6 +1730,38 @@ public final class DrawManager {
 			final PointsEffect effect) {
 		if (effect != null)
 			effect.draw(backBufferGraphics, screen.getWidth(), fontRegular);
+	}
+
+	/**
+	 * Draws the Warp In effect while the ship beams in.
+	 * AUTHORED BY: VFX TEAM (Effection)
+	 *
+	 * @param warpIn Warp In effect, may be null.
+	 * @param ship   Player ship.
+	 * @param color  Ship colour this frame.
+	 * @param topY   Top of the play area.
+	 */
+	public void drawWarpIn(final WarpIn warpIn, final Ship ship,
+			final Color color, final int topY) {
+		if (warpIn != null)
+			warpIn.draw((Graphics2D) backBufferGraphics,
+					spriteMap.get(ship.getType().getIdleSprite()), ship,
+					color, topY);
+	}
+	
+	/**
+	 * Draws the looping Warp In preview for the shop.
+	 * AUTHORED BY: VFX TEAM (Effection)
+	 *
+	 * @param shipSprite Sprite of the selected ship.
+	 * @param color      Colour of the selected skin.
+	 * @param centerX    Centre of the preview.
+	 * @param top        Top of the preview.
+	 */
+	public void drawWarpInPreview(final SpriteType shipSprite,
+			final Color color, final int centerX, final int top) {
+		WarpIn.drawPreview((Graphics2D) backBufferGraphics,
+				spriteMap.get(shipSprite), color, centerX, top, 50);
 	}
 
 	/** Point size of the small text used in the shop and Customize panels. */

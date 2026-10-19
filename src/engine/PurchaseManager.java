@@ -106,7 +106,10 @@ public final class PurchaseManager {
 
 	/** Shop id mapped to how many the player has (upgrade level). */
 	private final Map<String, Integer> owned;
-	/** Shop ids of bought upgrades the player switched off. */
+	/**
+	 * Shop ids of bought upgrades the player switched off. Bought shop
+	 * effects (VFX team) that are switched off are kept here too.
+	 */
 	private final Set<String> upgradesOff;
 	/** Ship used in the next run. */
 	private ShipType selectedShip;
@@ -436,6 +439,58 @@ public final class PurchaseManager {
 			if (isUpgradeOn(item.getRef()))
 				active.put(item.getRef(), getQuantity(item));
 		return Collections.unmodifiableMap(active);
+	}
+
+	/**
+	 * @param effectRef
+	 *            Effect id, e.g. "comet_trail".
+	 * @return true if the shop effect is bought and switched on.
+	 *         AUTHORED BY: VFX TEAM (Effection)
+	 */
+	public boolean isEffectOn(final String effectRef) {
+		return isEffectOn(ShopCatalog.findByRef(ShopCategory.EFFECT,
+				effectRef));
+	}
+
+	/**
+	 * @param effect
+	 *            Effect shop entry.
+	 * @return true if it is bought and switched on. Effects are on once
+	 *         bought, and any number can be on at once.
+	 *         AUTHORED BY: VFX TEAM (Effection)
+	 */
+	public boolean isEffectOn(final ShopItem effect) {
+		return effect != null && effect.getCategory() == ShopCategory.EFFECT
+				&& isOwned(effect) && !this.upgradesOff.contains(effect.getId());
+	}
+
+	/**
+	 * Switches a bought effect on or off; other effects are not changed.
+	 * AUTHORED BY: VFX TEAM (Effection)
+	 *
+	 * @param effect
+	 *            Effect shop entry.
+	 * @return false if it is not bought or could not be saved.
+	 */
+	public boolean toggleEffect(final ShopItem effect) {
+		if (effect == null || effect.getCategory() != ShopCategory.EFFECT
+				|| !isOwned(effect))
+			return false;
+		boolean wasOn = isEffectOn(effect);
+		if (wasOn)
+			this.upgradesOff.add(effect.getId());
+		else
+			this.upgradesOff.remove(effect.getId());
+		if (!save()) {
+			if (wasOn)
+				this.upgradesOff.remove(effect.getId());
+			else
+				this.upgradesOff.add(effect.getId());
+			return false;
+		}
+		this.logger.info(effect.getName() + (wasOn ? " switched off."
+				: " switched on."));
+		return true;
 	}
 
 	/**
