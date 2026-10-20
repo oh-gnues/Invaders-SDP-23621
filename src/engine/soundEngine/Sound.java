@@ -41,6 +41,8 @@ public enum Sound {
 	ACHIEVEMENT("sounds/achievement.wav", Category.SFX),
 	/** Run ended without lives left. */
 	GAME_OVER("sounds/game_over.wav", Category.SFX),
+	/** Level cleared with lives left. */
+	VICTORY("sounds/victory.wav", Category.SFX),
 
 	/** Background music of the title screen. */
 	BGM_TITLE("sounds/bgm_title.wav", Category.BGM),

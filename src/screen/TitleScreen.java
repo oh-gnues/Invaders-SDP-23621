@@ -4,6 +4,8 @@ import java.awt.event.KeyEvent;
 
 import engine.Cooldown;
 import engine.Core;
+import engine.soundEngine.Sound;
+import engine.soundEngine.SoundManager;
 
 /**
  * Implements the title screen.
@@ -56,6 +58,9 @@ public class TitleScreen extends Screen {
 				|| this.inputManager.isKeyDown(KeyEvent.VK_ENTER));
 		if (starfield == null)
 			starfield = new Starfield(width, height);
+
+		// Title music; does nothing if it is already playing.
+		SoundManager.getInstance().playBgm(Sound.BGM_TITLE);
 	}
 
 	/**
@@ -237,6 +242,11 @@ public class TitleScreen extends Screen {
 		if (this.selected == MenuItem.EXIT) {
 			openExitConfirm();
 			return;
+		}
+
+		// The title music only belongs to the menu, so stop it when a game starts.
+		if (this.selected == MenuItem.PLAY) {
+			SoundManager.getInstance().stopBgm();
 		}
 
 		lastSelected = this.selected;

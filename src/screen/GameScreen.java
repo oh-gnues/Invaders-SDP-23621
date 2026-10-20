@@ -13,6 +13,8 @@ import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Set;
 
+import engine.soundEngine.Sound;
+import engine.soundEngine.SoundManager;
 import engine.CoinDropManager;
 import engine.Cooldown;
 import engine.Core;
@@ -334,6 +336,7 @@ public class GameScreen extends Screen {
 	 */
 	public final void initialize() {
 		super.initialize();
+		SoundManager.getInstance().playBgm(Sound.BGM_GAME);
 
 		// Initialize the player in both boss and normal stages.
 		this.ship = new Ship(this.width / 2, this.height - 30,
@@ -554,6 +557,8 @@ public class GameScreen extends Screen {
 			// falling are collected so the last kills' drops aren't lost.
 			if (isCleared && this.lives > 0) {
 				this.levelsCompletedRun++; // Sharpshooter tiers (Mantis)
+				SoundManager.getInstance().stopBgm();
+				SoundManager.getInstance().playSfx(Sound.VICTORY);
 				this.pendingDiamonds += this.level;
 				collectRemainingCoins();
 				this.pendingDiamonds += this.meteors.collectRemaining(); // VFX TEAM (Effection): collects remaining diamonds from the meteor and adds them to pending
@@ -590,6 +595,8 @@ public class GameScreen extends Screen {
 	 * Any further inquiries please contact us.
 	 */
 	private void startGameOverSequence() {
+		SoundManager.getInstance().stopBgm();
+		SoundManager.getInstance().playSfx(Sound.GAME_OVER);
 		this.levelFinished = true;
 		this.gameOverActive = true;
 
