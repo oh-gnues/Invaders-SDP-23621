@@ -18,12 +18,13 @@ import item.ItemSystem;
 import shop.Currency;
 import shop.NightMarket;
 import shop.ShopCatalog;
+import shop.ShapeSkin;
 import shop.ShopCategory;
 import shop.ShopItem;
 import shop.Skin;
 
 /**
- * The shop (GoG - Currency System). Four tabs: Ships, Skins, Upgrades and
+ * The shop (GoG - Currency System). Five tabs: Ships, Skins, Looks, Upgrades and
  * the Night Market. The left side lists what is for sale, the right side
  * shows the selected entry with its price and BUY buttons.
  *
@@ -47,6 +48,8 @@ public class ShopScreen extends Screen {
 		SHIPS("Ships", Color.GREEN),
 		/** Ship skins. */
 		SKINS("Skins", Color.CYAN),
+		/** Ship looks: alternative shapes for each ship (A1). */
+		LOOKS("Looks", new Color(120, 200, 255)),
 		/** Item team upgrades. */
 		UPGRADES("Upgrades", new Color(255, 200, 0)),
 		/** Today's discounts. */
@@ -295,25 +298,28 @@ public class ShopScreen extends Screen {
 	private static List<Entry> buildEntries(final Tab shown) {
 		List<Entry> result = new ArrayList<Entry>();
 		switch (shown) {
-		case SHIPS:
-			addAll(result, ShopCatalog.getByCategory(ShopCategory.SHIP));
-			break;
-		case SKINS:
-			addAll(result, ShopCatalog.getByCategory(ShopCategory.SKIN));
-			break;
-		case UPGRADES:
-			addAll(result, ShopCatalog.getByCategory(ShopCategory.UPGRADE));
-			break;
-		default:
-			for (ShopItem item : NightMarket.getListings())
-				result.add(new Entry(item, true));
-			break;
+			case SHIPS:
+				addAll(result, ShopCatalog.getByCategory(ShopCategory.SHIP));
+				break;
+			case SKINS:
+				addAll(result, ShopCatalog.getByCategory(ShopCategory.SKIN));
+				break;
+			case LOOKS:
+				addAll(result, ShopCatalog.getByCategory(ShopCategory.SHAPE));
+				break;
+			case UPGRADES:
+				addAll(result, ShopCatalog.getByCategory(ShopCategory.UPGRADE));
+				break;
+			default:
+				for (ShopItem item : NightMarket.getListings())
+					result.add(new Entry(item, true));
+				break;
 		}
 		return result;
 	}
 
 	private static void addAll(final List<Entry> result,
-			final List<ShopItem> items) {
+							   final List<ShopItem> items) {
 		for (ShopItem item : items)
 			result.add(new Entry(item, false));
 	}
@@ -339,35 +345,35 @@ public class ShopScreen extends Screen {
 		PurchaseResult result = purchases.purchase(item, currency,
 				entry.discounted);
 		switch (result) {
-		case SUCCESS:
-			showMessage((item.isRepeatable() ? item.getName() + " is now"
-					+ " level " + purchases.getQuantity(item) + "! "
-					: "Bought " + item.getName() + "! ") + afterBuying(item),
-					Color.GREEN);
-			break;
-		case INSUFFICIENT_FUNDS:
-			showMessage("Not enough " + currency.getLabel() + " (need "
-					+ price + ").", TOO_EXPENSIVE);
-			break;
-		case ALREADY_OWNED:
-			showMessage("You already own this.", TOO_EXPENSIVE);
-			break;
-		case MAX_LEVEL:
-			showMessage("Already at max level.", TOO_EXPENSIVE);
-			break;
-		case CURRENCY_NOT_ACCEPTED:
-			showMessage("Can't be paid with " + currency.getLabel() + ".",
-					TOO_EXPENSIVE);
-			break;
-		case NOT_ON_SALE:
-			// A Night Market deal can end at midnight while the shop is open.
-			showMessage(entry.discounted ? "Today's deal has ended."
-					: "This limited edition is no longer sold.", TOO_EXPENSIVE);
-			break;
-		default:
-			showMessage("Purchase failed, nothing was charged.",
-					TOO_EXPENSIVE);
-			break;
+			case SUCCESS:
+				showMessage((item.isRepeatable() ? item.getName() + " is now"
+								+ " level " + purchases.getQuantity(item) + "! "
+								: "Bought " + item.getName() + "! ") + afterBuying(item),
+						Color.GREEN);
+				break;
+			case INSUFFICIENT_FUNDS:
+				showMessage("Not enough " + currency.getLabel() + " (need "
+						+ price + ").", TOO_EXPENSIVE);
+				break;
+			case ALREADY_OWNED:
+				showMessage("You already own this.", TOO_EXPENSIVE);
+				break;
+			case MAX_LEVEL:
+				showMessage("Already at max level.", TOO_EXPENSIVE);
+				break;
+			case CURRENCY_NOT_ACCEPTED:
+				showMessage("Can't be paid with " + currency.getLabel() + ".",
+						TOO_EXPENSIVE);
+				break;
+			case NOT_ON_SALE:
+				// A Night Market deal can end at midnight while the shop is open.
+				showMessage(entry.discounted ? "Today's deal has ended."
+						: "This limited edition is no longer sold.", TOO_EXPENSIVE);
+				break;
+			default:
+				showMessage("Purchase failed, nothing was charged.",
+						TOO_EXPENSIVE);
+				break;
 		}
 	}
 
@@ -466,7 +472,7 @@ public class ShopScreen extends Screen {
 		return currency == Currency.COINS
 				? new Rectangle(row.x, row.y, half, row.height)
 				: new Rectangle(row.x + row.width - half, row.y, half,
-						row.height);
+				row.height);
 	}
 
 	// --- Drawing ---
@@ -516,7 +522,7 @@ public class ShopScreen extends Screen {
 					area.height - 1, active ? each.color : BORDER);
 			String title = each.title.toUpperCase();
 			this.drawManager.drawSmallString(title, area.x + (area.width
-					- this.drawManager.getSmallStringWidth(title)) / 2,
+							- this.drawManager.getSmallStringWidth(title)) / 2,
 					area.y + 14, active ? each.color : Color.GRAY);
 		}
 	}
@@ -556,13 +562,13 @@ public class ShopScreen extends Screen {
 			}
 			if (tag != null)
 				this.drawManager.drawSmallString(tag, area.x + area.width - 6
-						- this.drawManager.getSmallStringWidth(tag),
+								- this.drawManager.getSmallStringWidth(tag),
 						area.y + 12, tagColor);
 
 			int baseline = area.y + 24;
 			if (soldOut) {
 				this.drawManager.drawSmallString(entry.item.isRepeatable()
-						? "MAX LEVEL" : "OWNED", area.x + 6, baseline,
+								? "MAX LEVEL" : "OWNED", area.x + 6, baseline,
 						Color.GRAY);
 			} else if (!ShopCatalog.isOnSale(entry.item, LocalDate.now())) {
 				this.drawManager.drawSmallString("ENDED", area.x + 6,
@@ -577,7 +583,7 @@ public class ShopScreen extends Screen {
 				String level = "LV " + quantity + "/"
 						+ entry.item.getMaxLevel();
 				this.drawManager.drawSmallString(level, area.x + area.width
-						- 6 - this.drawManager.getSmallStringWidth(level),
+								- 6 - this.drawManager.getSmallStringWidth(level),
 						baseline, Color.GRAY);
 			}
 		}
@@ -609,7 +615,7 @@ public class ShopScreen extends Screen {
 	 * @return Left edge for whatever is drawn next.
 	 */
 	private int drawPrice(final Entry entry, final Currency currency,
-			final int left, final int baseline) {
+						  final int left, final int baseline) {
 		int price = entry.price(currency);
 		if (price <= 0)
 			return left;
@@ -638,7 +644,7 @@ public class ShopScreen extends Screen {
 
 		String name = item.getName();
 		this.drawManager.drawRegularString(name, centerX
-				- this.drawManager.getRegularStringWidth(name) / 2,
+						- this.drawManager.getRegularStringWidth(name) / 2,
 				area.y + 22, this.tab.color);
 
 		drawPreview(item, centerX, area.y + 36);
@@ -677,7 +683,7 @@ public class ShopScreen extends Screen {
 							.getPrice(currency, purchases.getQuantity(item)));
 			String text = was.toString();
 			this.drawManager.drawSmallString(text, area.x + area.width - 12
-					- this.drawManager.getSmallStringWidth(text),
+							- this.drawManager.getSmallStringWidth(text),
 					priceBaseline, Color.GRAY);
 		}
 
@@ -725,38 +731,55 @@ public class ShopScreen extends Screen {
 	 *            Top of the preview.
 	 */
 	private void drawPreview(final ShopItem item, final int centerX,
-			final int top) {
+							 final int top) {
 		PurchaseManager purchases = PurchaseManager.getInstance();
 		final int pixel = 3;
 		switch (item.getCategory()) {
-		case SHIP:
-		case SKIN: {
-			ShipType type = item.getCategory() == ShopCategory.SHIP
-					? ShipType.valueOf(item.getRef())
-					: purchases.getSelectedShip();
-			// Animated skins move in the preview too.
-			long now = System.currentTimeMillis();
-			Color color = item.getCategory() == ShopCategory.SKIN
-					? Skin.valueOf(item.getRef()).colorAt(now)
-					: purchases.getSelectedSkin().colorAt(now);
-			SpriteType sprite = type.getIdleSprite();
-			int[] size = this.drawManager.getSpriteSize(sprite);
-			this.drawManager.drawSpriteScaled(sprite, centerX - size[0]
-					* pixel / 2, top + 6, pixel, color);
-			break;
-		}
-		default: {
-			Color color = itemColor(item);
-			int badge = 30;
-			int left = centerX - badge / 2;
-			this.drawManager.fillBox(left, top, badge, badge, tint(color));
-			this.drawManager.drawBox(left, top, badge, badge, color);
-			String letter = item.getName().substring(0, 1);
-			this.drawManager.drawRegularString(letter, centerX
-					- this.drawManager.getRegularStringWidth(letter) / 2,
-					top + 21, color);
-			break;
-		}
+			case SHAPE: {
+				// A ship look: its shape, in the colour skin currently used.
+				ShapeSkin shape = ShapeSkin.valueOf(item.getRef());
+				Color color = purchases.getSelectedSkin().colorAt(
+						System.currentTimeMillis());
+				SpriteType sprite = shape.getSprite();
+				int[] size = this.drawManager.getSpriteSize(sprite);
+				this.drawManager.drawSpriteScaled(sprite, centerX - size[0]
+						* pixel / 2, top + 6, pixel, color);
+				break;
+			}
+			case SHIP:
+			case SKIN: {
+				ShipType type = item.getCategory() == ShopCategory.SHIP
+						? ShipType.valueOf(item.getRef())
+						: purchases.getSelectedShip();
+				// Animated skins move in the preview too.
+				long now = System.currentTimeMillis();
+				Color color = item.getCategory() == ShopCategory.SKIN
+						? Skin.valueOf(item.getRef()).colorAt(now)
+						: purchases.getSelectedSkin().colorAt(now);
+				SpriteType sprite = type.getIdleSprite();
+				if (item.getCategory() == ShopCategory.SKIN) {
+					// The skin is shown on the ship in the look chosen for it.
+					ShapeSkin look = purchases.getSelectedShape(type);
+					if (look != null)
+						sprite = look.getSprite();
+				}
+				int[] size = this.drawManager.getSpriteSize(sprite);
+				this.drawManager.drawSpriteScaled(sprite, centerX - size[0]
+						* pixel / 2, top + 6, pixel, color);
+				break;
+			}
+			default: {
+				Color color = itemColor(item);
+				int badge = 30;
+				int left = centerX - badge / 2;
+				this.drawManager.fillBox(left, top, badge, badge, tint(color));
+				this.drawManager.drawBox(left, top, badge, badge, color);
+				String letter = item.getName().substring(0, 1);
+				this.drawManager.drawRegularString(letter, centerX
+								- this.drawManager.getRegularStringWidth(letter) / 2,
+						top + 21, color);
+				break;
+			}
 		}
 	}
 
@@ -772,38 +795,45 @@ public class ShopScreen extends Screen {
 		List<String> lines = new ArrayList<String>();
 		PurchaseManager purchases = PurchaseManager.getInstance();
 		switch (item.getCategory()) {
-		case SHIP: {
-			ShipType type = ShipType.valueOf(item.getRef());
-			lines.add("SPEED " + type.getSpeed() + "  |  BULLETS "
-					+ type.getBulletsPerShot());
-			lines.add("SHOTS PER SEC " + String.format("%.2f",
-					type.getBulletsPerShot() * 1000.0
-							/ type.getShootingInterval()));
-			break;
-		}
-		case SKIN: {
-			Skin skin = ShopCatalog.limitedSkin(item);
-			if (skin == null)
+			case SHIP: {
+				ShipType type = ShipType.valueOf(item.getRef());
+				lines.add("SPEED " + type.getSpeed() + "  |  BULLETS "
+						+ type.getBulletsPerShot());
+				lines.add("SHOTS PER SEC " + String.format("%.2f",
+						type.getBulletsPerShot() * 1000.0
+								/ type.getShootingInterval()));
 				break;
-			long days = skin.daysLeft(LocalDate.now());
-			lines.add(days == 0 ? "LIMITED EDITION - NO LONGER SOLD"
-					: "LIMITED EDITION - " + days
-							+ (days == 1 ? " DAY LEFT" : " DAYS LEFT"));
-			break;
-		}
-		case UPGRADE: {
-			if (!purchases.isOwned(item)) {
-				lines.add("ONE EQUIPPED AT A TIME");
-			} else {
-				lines.add("OWNED - "
-						+ (purchases.isUpgradeOn(item.getRef()) ? "ON"
-								: "OFF"));
-				lines.add("SWITCH ON/OFF IN CUSTOMIZE");
 			}
-			break;
-		}
-		default:
-			break;
+			case SHAPE: {
+				ShapeSkin shape = ShapeSkin.valueOf(item.getRef());
+				lines.add("FOR THE " + ShopCatalog.shipName(shape.getShipType())
+						.toUpperCase() + " SHIP");
+				lines.add("LOOK ONLY - SAME STATS");
+				break;
+			}
+			case SKIN: {
+				Skin skin = ShopCatalog.limitedSkin(item);
+				if (skin == null)
+					break;
+				long days = skin.daysLeft(LocalDate.now());
+				lines.add(days == 0 ? "LIMITED EDITION - NO LONGER SOLD"
+						: "LIMITED EDITION - " + days
+						+ (days == 1 ? " DAY LEFT" : " DAYS LEFT"));
+				break;
+			}
+			case UPGRADE: {
+				if (!purchases.isOwned(item)) {
+					lines.add("ONE EQUIPPED AT A TIME");
+				} else {
+					lines.add("OWNED - "
+							+ (purchases.isUpgradeOn(item.getRef()) ? "ON"
+							: "OFF"));
+					lines.add("SWITCH ON/OFF IN CUSTOMIZE");
+				}
+				break;
+			}
+			default:
+				break;
 		}
 		return lines;
 	}
@@ -835,9 +865,9 @@ public class ShopScreen extends Screen {
 	}
 
 	private void drawCentered(final String text, final int centerX,
-			final int baseline, final Color color) {
+							  final int baseline, final Color color) {
 		this.drawManager.drawSmallString(text, centerX
-				- this.drawManager.getSmallStringWidth(text) / 2, baseline,
+						- this.drawManager.getSmallStringWidth(text) / 2, baseline,
 				color);
 	}
 
@@ -857,7 +887,7 @@ public class ShopScreen extends Screen {
 			String candidate = line.length() == 0 ? word : line + " " + word;
 			if (line.length() > 0
 					&& this.drawManager.getSmallStringWidth(candidate)
-							> maxWidth) {
+					> maxWidth) {
 				lines.add(line.toString());
 				line = new StringBuilder(word);
 			} else {

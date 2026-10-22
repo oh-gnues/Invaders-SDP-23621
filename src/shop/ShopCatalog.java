@@ -19,6 +19,8 @@ import entity.Ship.ShipType;
  * <li>Skins (Skin team): every {@link Skin} except CLASSIC is sold
  * automatically, so the Skin team only adds a constant to Skin.java. Its
  * price comes from {@link #SKIN_PRICES}, or the default until we add one.</li>
+ * <li>Ship looks (A1): every {@link ShapeSkin} is sold automatically, at
+ * the price in {@link #SHAPE_PRICES} or the default.</li>
  * <li>Upgrades (Item team): their equipped items, by Item System item id.
  * Regular items (shield, freeze, ...) are not sold: they only drop in
  * game.</li>
@@ -38,6 +40,11 @@ public final class ShopCatalog {
 	/** Skin prices: {coins, diamonds}. */
 	private static final Map<Skin, int[]> SKIN_PRICES =
 			new EnumMap<Skin, int[]>(Skin.class);
+	/** Price of a ship look with no line in SHAPE_PRICES: {coins, diamonds}. */
+	private static final int[] DEFAULT_SHAPE_PRICE = { 40, 20 };
+	/** Ship look prices: {coins, diamonds}. */
+	private static final Map<ShapeSkin, int[]> SHAPE_PRICES =
+			new EnumMap<ShapeSkin, int[]>(ShapeSkin.class);
 	/** Skin descriptions; skins without one get a generic line. */
 	private static final Map<Skin, String> SKIN_DESCRIPTIONS =
 			new EnumMap<Skin, String>(Skin.class);
@@ -69,6 +76,15 @@ public final class ShopCatalog {
 		SKIN_DESCRIPTIONS.put(Skin.PHANTOM, "A ghostly hull that fades in"
 				+ " and out. Halloween only.");
 
+		// --- Ship look prices {coins, diamonds}: plain shapes 40/20, the
+		// more elaborate hollow and heavy ones 50/25. ---
+		for (ShapeSkin shape : ShapeSkin.values())
+			SHAPE_PRICES.put(shape, DEFAULT_SHAPE_PRICE);
+		SHAPE_PRICES.put(ShapeSkin.FAST_ATTACK_STEALTH, new int[] { 50, 25 });
+		SHAPE_PRICES.put(ShapeSkin.FAST_MOVE_STEALTH, new int[] { 50, 25 });
+		SHAPE_PRICES.put(ShapeSkin.TWO_WAY_HOLLOW, new int[] { 50, 25 });
+		SHAPE_PRICES.put(ShapeSkin.BIG_BULLET_FORTRESS, new int[] { 50, 25 });
+
 		List<ShopItem> items = new ArrayList<ShopItem>();
 
 		// Ships (A1): bought once with coins, chosen in Customize.
@@ -85,6 +101,10 @@ public final class ShopCatalog {
 		for (Skin skin : Skin.values())
 			if (skin != Skin.CLASSIC)
 				items.add(skin(skin));
+
+		// Ship looks (A1): the 12 shapes, grouped by ship, coins or diamonds.
+		for (ShapeSkin shape : ShapeSkin.values())
+			items.add(shape(shape));
 
 		// Upgrades (Item team): either currency. Item System rule: equipped
 		// items have no levels, so each one is bought once and only one is
@@ -147,7 +167,7 @@ public final class ShopCatalog {
 	 *         (which means it is free).
 	 */
 	public static ShopItem findByRef(final ShopCategory category,
-			final String ref) {
+									 final String ref) {
 		for (ShopItem item : ITEMS)
 			if (item.getCategory() == category && item.getRef().equals(ref))
 				return item;
@@ -177,7 +197,7 @@ public final class ShopCatalog {
 	 * @return true if the entry can be bought on that day.
 	 */
 	public static boolean isOnSale(final ShopItem item,
-			final java.time.LocalDate today) {
+								   final java.time.LocalDate today) {
 		Skin skin = limitedSkin(item);
 		return skin == null || skin.isOnSale(today);
 	}
@@ -191,23 +211,23 @@ public final class ShopCatalog {
 	 */
 	public static String shipName(final ShipType type) {
 		switch (type) {
-		case TWO_WAY:
-			return "Two-Way Shot";
-		default:
-			String[] words = type.name().toLowerCase().split("_");
-			StringBuilder name = new StringBuilder();
-			for (String word : words) {
-				if (name.length() > 0)
-					name.append(' ');
-				name.append(Character.toUpperCase(word.charAt(0)))
-						.append(word.substring(1));
-			}
-			return name.toString();
+			case TWO_WAY:
+				return "Two-Way Shot";
+			default:
+				String[] words = type.name().toLowerCase().split("_");
+				StringBuilder name = new StringBuilder();
+				for (String word : words) {
+					if (name.length() > 0)
+						name.append(' ');
+					name.append(Character.toUpperCase(word.charAt(0)))
+							.append(word.substring(1));
+				}
+				return name.toString();
 		}
 	}
 
 	private static ShopItem ship(final ShipType type,
-			final String description, final int coins) {
+								 final String description, final int coins) {
 		return new ShopItem("ship_" + type.name().toLowerCase(),
 				shipName(type), description, ShopCategory.SHIP, coins, 0, 0,
 				0, 1, type.name());
@@ -223,8 +243,25 @@ public final class ShopCatalog {
 				price[0], price[1], 0, 0, 1, skin.name());
 	}
 
+	private static ShopItem shape(final ShapeSkin shape) {
+		int[] price = SHAPE_PRICES.get(shape);
+		return new ShopItem("shape_" + shape.name().toLowerCase(),
+				shopName(shape), shape.getDescription(), ShopCategory.SHAPE,
+				price[0], price[1], 0, 0, 1, shape.name());
+	}
+
+	/**
+	 * @param shape
+	 *            Ship look.
+	 * @return Name in the shop, e.g. "Fast Attack - Arrow".
+	 */
+	public static String shopName(final ShapeSkin shape) {
+		return shipName(shape.getShipType()) + " - "
+				+ shape.getDisplayName();
+	}
+
 	private static ShopItem upgrade(final String itemId, final String name,
-			final String description, final int coins, final int diamonds) {
+									final String description, final int coins, final int diamonds) {
 		// No levels (Item System rule): no price step, bought once.
 		return new ShopItem("upgrade_" + itemId, name, description,
 				ShopCategory.UPGRADE, coins, diamonds, 0, 0, 1, itemId);

@@ -124,6 +124,30 @@ public final class DrawManager {
 		InfinityVoid,
 		/** First Boss Kill achievement icon. */
 		BossKill,
+		/** Fast Attack skin A1 (Arrow). */
+		ShipSkinA1,
+		/** Fast Attack skin A2 (Twin Fang). */
+		ShipSkinA2,
+		/** Fast Attack skin A3 (Stealth). */
+		ShipSkinA3,
+		/** Big Bullet skin B1 (Cannon). */
+		ShipSkinB1,
+		/** Big Bullet skin B2 (Mortar). */
+		ShipSkinB2,
+		/** Big Bullet skin B3 (Fortress). */
+		ShipSkinB3,
+		/** Fast Move skin C1 (Jet). */
+		ShipSkinC1,
+		/** Fast Move skin C2 (Triple Thruster). */
+		ShipSkinC2,
+		/** Fast Move skin C3 (Stealth). */
+		ShipSkinC3,
+		/** Two-Way Shot skin D1 (Long Barrels). */
+		ShipSkinD1,
+		/** Two-Way Shot skin D2 (Twin Spike). */
+		ShipSkinD2,
+		/** Two-Way Shot skin D3 (Hollow). */
+		ShipSkinD3,
 
 		/** Achievement trophy icon. */
 		Trophy,
@@ -191,6 +215,20 @@ public final class DrawManager {
 			spriteMap.put(SpriteType.MidBoss2, new boolean[16][10]);
 			spriteMap.put(SpriteType.FinalBoss1, new boolean[24][16]);
 			spriteMap.put(SpriteType.FinalBoss2, new boolean[24][16]);
+
+			// Player ship skins (A1)
+			spriteMap.put(SpriteType.ShipSkinA1, new boolean[13][8]);
+			spriteMap.put(SpriteType.ShipSkinA2, new boolean[13][8]);
+			spriteMap.put(SpriteType.ShipSkinA3, new boolean[13][8]);
+			spriteMap.put(SpriteType.ShipSkinB1, new boolean[13][8]);
+			spriteMap.put(SpriteType.ShipSkinB2, new boolean[13][8]);
+			spriteMap.put(SpriteType.ShipSkinB3, new boolean[13][8]);
+			spriteMap.put(SpriteType.ShipSkinC1, new boolean[13][8]);
+			spriteMap.put(SpriteType.ShipSkinC2, new boolean[13][8]);
+			spriteMap.put(SpriteType.ShipSkinC3, new boolean[13][8]);
+			spriteMap.put(SpriteType.ShipSkinD1, new boolean[13][8]);
+			spriteMap.put(SpriteType.ShipSkinD2, new boolean[13][8]);
+			spriteMap.put(SpriteType.ShipSkinD3, new boolean[13][8]);
 
 			fileManager.loadSprite(spriteMap);
 			logger.info("Finished loading the sprites.");
@@ -328,8 +366,32 @@ public final class DrawManager {
 		g2d.setComposite(AlphaComposite.getInstance(
 				AlphaComposite.SRC_OVER, alpha));
 
-		drawSprite(entity.getSpriteType(), positionX, positionY,
-				entity.getColor());
+		// If the entity is a Bullet fired by the PLAYER (speed < 0), stretch its sprite to match its actual dimensions.
+		if (entity instanceof entity.Bullet && ((entity.Bullet) entity).getSpeed() < 0) {
+			boolean[][] image = spriteMap.get(entity.getSpriteType());
+			if (image != null && image.length > 0) {
+				// Calculate how much to stretch each pixel of the sprite
+				double scaleX = (double) entity.getWidth() / image.length;
+				double scaleY = (double) entity.getHeight() / image[0].length;
+
+				backBufferGraphics.setColor(entity.getColor());
+				for (int i = 0; i < image.length; i++) {
+					for (int j = 0; j < image[i].length; j++) {
+						if (image[i][j]) {
+							backBufferGraphics.fillRect(
+									positionX + (int)(i * scaleX),
+									positionY + (int)(j * scaleY),
+									(int)Math.ceil(scaleX),
+									(int)Math.ceil(scaleY));
+						}
+					}
+				}
+			}
+		} else {
+			// For all other entities (ships, enemies, and ENEMY bullets), use the standard 2x pixel drawing
+			drawSprite(entity.getSpriteType(), positionX, positionY,
+					entity.getColor());
+		}
 
 		g2d.setComposite(AlphaComposite.SrcOver); // back to normal
 	}
@@ -672,7 +734,7 @@ public final class DrawManager {
 				particle.getSize());
 		g2d.setComposite(java.awt.AlphaComposite.SrcOver);
 	}
-		/**
+	/**
 	 * Draws all sparkles, clipped to the play area below the HUD line.
 	 * Call while the world offset is applied so they shake with the world.
 	 * AUTHORED BY: VFX TEAM (Effection)
@@ -685,7 +747,7 @@ public final class DrawManager {
 	 *            Y of the HUD separation line; nothing is drawn above it.
 	 */
 	public void drawParticles(final Screen screen,
-			final java.util.List<Particle> particles, final int topY) {
+							  final java.util.List<Particle> particles, final int topY) {
 		java.awt.Shape oldClip = backBufferGraphics.getClip();
 		// Undo the shake offset so the clip stays fixed on screen.
 		backBufferGraphics.clipRect(-worldOffsetX, topY - worldOffsetY,
@@ -781,6 +843,10 @@ public final class DrawManager {
 		backBufferGraphics.drawString("LIVES", 20, 25);
 
 		Ship dummyShip = new Ship(0, 0, Core.getSelectedShipType());
+		// Life icons use the ship look chosen in Customize (A1).
+		shop.ShapeSkin shape = PurchaseManager.getInstance()
+				.getSelectedShape(dummyShip.getType());
+		dummyShip.setShapeSprite(shape == null ? null : shape.getSprite());
 		for (int i = 0; i < lives; i++)
 			drawEntity(dummyShip, 20 + LIVES_LABEL_WIDTH
 					+ LIVES_ICON_SPACING * i, 10);
@@ -992,7 +1058,7 @@ public final class DrawManager {
 	 *         nothing has been drawn yet.
 	 */
 	public boolean isOnMenuRow(final int baseline, final int rowHeight,
-			final int positionY) {
+							   final int positionY) {
 		if (fontRegularMetrics == null)
 			return false;
 		int top = baseline - fontRegularMetrics.getAscent()
@@ -1702,7 +1768,7 @@ public final class DrawManager {
 	 * @param effect Points effect to draw.
 	 */
 	public void drawPointsEffect(final Screen screen,
-			final PointsEffect effect) {
+								 final PointsEffect effect) {
 		if (effect != null)
 			effect.draw(backBufferGraphics, screen.getWidth(), fontRegular);
 	}
@@ -1732,7 +1798,7 @@ public final class DrawManager {
 	 * @param color     Fill colour.
 	 */
 	public void fillBox(final int positionX, final int positionY,
-			final int width, final int height, final Color color) {
+						final int width, final int height, final Color color) {
 		backBufferGraphics.setColor(color);
 		backBufferGraphics.fillRect(positionX, positionY, width, height);
 	}
@@ -1758,7 +1824,7 @@ public final class DrawManager {
 	 * @param color     Colour of the text.
 	 */
 	public void drawSmallString(final String string, final int positionX,
-			final int positionY, final Color color) {
+								final int positionY, final Color color) {
 		backBufferGraphics.setFont(smallFont());
 		backBufferGraphics.setColor(color);
 		backBufferGraphics.drawString(string, positionX, positionY);
@@ -1796,7 +1862,7 @@ public final class DrawManager {
 	 * @param size      Icon size in pixels.
 	 */
 	public void drawCurrencyIcon(final int positionX, final int baseline,
-			final boolean diamond, final int size) {
+								 final boolean diamond, final int size) {
 		int top = baseline - size + 1;
 		if (diamond) {
 			int[] xPoints = { positionX + size / 2, positionX + size,
@@ -1821,8 +1887,8 @@ public final class DrawManager {
 	 * @param color      Colour of the filled pixels.
 	 */
 	public void drawSpriteScaled(final SpriteType spriteType,
-			final int positionX, final int positionY, final int pixelSize,
-			final Color color) {
+								 final int positionX, final int positionY, final int pixelSize,
+								 final Color color) {
 		boolean[][] image = spriteMap.get(spriteType);
 		if (image == null)
 			return;

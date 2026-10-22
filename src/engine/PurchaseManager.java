@@ -12,6 +12,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -24,6 +25,7 @@ import entity.Ship.ShipType;
 import item.ItemSystem;
 import shop.Currency;
 import shop.NightMarket;
+import shop.ShapeSkin;
 import shop.ShopCatalog;
 import shop.ShopCategory;
 import shop.ShopItem;
@@ -96,6 +98,8 @@ public final class PurchaseManager {
 	private static final String SHIP_KEY = "selected.ship";
 	/** Save key of the chosen skin. */
 	private static final String SKIN_KEY = "selected.skin";
+	/** Save key prefix of the chosen ship look of each ship type. */
+	private static final String SHAPE_KEY = "selected.shape.";
 	/** Save key of the upgrades the player switched off. */
 	private static final String OFF_KEY = "upgrades.off";
 	/** Save key set once old gear from the Item System save was copied. */
@@ -112,6 +116,8 @@ public final class PurchaseManager {
 	private ShipType selectedShip;
 	/** Skin used in the next run. */
 	private Skin selectedSkin;
+	/** Ship look (shape) chosen for each ship type; no entry = original. */
+	private final Map<ShipType, ShapeSkin> selectedShapes;
 	/** Teams told about changes. */
 	private final List<ShopListener> listeners;
 	/** Upgrade most recently bought or switched on, for the bridge. */
@@ -129,6 +135,7 @@ public final class PurchaseManager {
 		this.listeners = new ArrayList<ShopListener>();
 		this.selectedShip = ShipType.STANDARD;
 		this.selectedSkin = Skin.CLASSIC;
+		this.selectedShapes = new EnumMap<ShipType, ShapeSkin>(ShipType.class);
 		load();
 		syncItemSystem();
 	}
@@ -154,7 +161,7 @@ public final class PurchaseManager {
 	 * @return What happened.
 	 */
 	public PurchaseResult purchase(final ShopItem item,
-			final Currency currency) {
+								   final Currency currency) {
 		return purchase(item, currency, false);
 	}
 
@@ -172,7 +179,7 @@ public final class PurchaseManager {
 	 * @return What happened.
 	 */
 	public PurchaseResult purchase(final ShopItem item,
-			final Currency currency, final boolean nightMarket) {
+								   final Currency currency, final boolean nightMarket) {
 		if (item == null || ShopCatalog.findById(item.getId()) == null
 				|| currency == null)
 			return PurchaseResult.UNKNOWN_ITEM;
@@ -249,7 +256,7 @@ public final class PurchaseManager {
 	 *         accepted.
 	 */
 	public int getPrice(final ShopItem item, final Currency currency,
-			final boolean nightMarket) {
+						final boolean nightMarket) {
 		if (item == null || isMaxed(item) || !item.accepts(currency))
 			return 0;
 		int price = item.getPrice(currency, getQuantity(item));
@@ -325,6 +332,54 @@ public final class PurchaseManager {
 	public boolean isSkinUnlocked(final Skin skin) {
 		ShopItem item = ShopCatalog.findByRef(ShopCategory.SKIN, skin.name());
 		return item == null || isOwned(item);
+	}
+
+	/**
+	 * @param shape
+	 *            Ship look.
+	 * @return true if the player may use it.
+	 */
+	public boolean isShapeUnlocked(final ShapeSkin shape) {
+		ShopItem item = ShopCatalog.findByRef(ShopCategory.SHAPE,
+				shape.name());
+		return item == null || isOwned(item);
+	}
+
+	/**
+	 * @param type
+	 *            Ship type.
+	 * @return The look chosen for that ship, or null for its original look.
+	 */
+	public ShapeSkin getSelectedShape(final ShipType type) {
+		ShapeSkin shape = this.selectedShapes.get(type);
+		return shape != null && isShapeUnlocked(shape) ? shape : null;
+	}
+
+	/**
+	 * Chooses the look of a ship for the next runs. The choice is kept per
+	 * ship type, so each ship remembers its own look.
+	 *
+	 * @param type
+	 *            Ship type.
+	 * @param shape
+	 *            Look of that ship; null for the original look.
+	 * @return false if the look is locked or belongs to another ship type;
+	 *         nothing changes then.
+	 */
+	public boolean selectShape(final ShipType type, final ShapeSkin shape) {
+		if (type == null)
+			return false;
+		if (shape != null && (shape.getShipType() != type
+				|| !isShapeUnlocked(shape)))
+			return false;
+		if (shape != this.selectedShapes.get(type)) {
+			if (shape == null)
+				this.selectedShapes.remove(type);
+			else
+				this.selectedShapes.put(type, shape);
+			save();
+		}
+		return true;
 	}
 
 	/** @return Ship used in the next run. */
@@ -697,6 +752,18 @@ public final class PurchaseManager {
 		} catch (IllegalArgumentException e) {
 			this.selectedSkin = Skin.CLASSIC;
 		}
+		for (ShipType type : ShipType.values()) {
+			String name = saved.getProperty(SHAPE_KEY + type.name());
+			if (name == null)
+				continue;
+			try {
+				ShapeSkin shape = ShapeSkin.valueOf(name.trim());
+				if (shape.getShipType() == type)
+					this.selectedShapes.put(type, shape);
+			} catch (IllegalArgumentException e) {
+				this.logger.warning("Skipping unknown ship look " + name);
+			}
+		}
 		if (!Boolean.parseBoolean(saved.getProperty(MIGRATED_KEY, "false"))) {
 			if (migrateOldGear())
 				this.logger.info("Copied gear from the old save as upgrades.");
@@ -730,6 +797,10 @@ public final class PurchaseManager {
 		saved.setProperty(OFF_KEY, String.join(",", this.upgradesOff));
 		saved.setProperty(SHIP_KEY, this.selectedShip.name());
 		saved.setProperty(SKIN_KEY, this.selectedSkin.name());
+		for (Map.Entry<ShipType, ShapeSkin> entry : this.selectedShapes
+				.entrySet())
+			saved.setProperty(SHAPE_KEY + entry.getKey().name(),
+					entry.getValue().name());
 		saved.setProperty(MIGRATED_KEY, "true");
 		try {
 			Path file = getOwnedFile().toPath();

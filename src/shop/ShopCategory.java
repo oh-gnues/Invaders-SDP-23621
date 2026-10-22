@@ -16,6 +16,11 @@ public enum ShopCategory {
 	/** Cosmetic recolour of the ship (Skin team). Bought once, one used at a time. */
 	SKIN("Cosmetic skin"),
 	/**
+	 * Alternative shape of one ship type (A1 - Ship Variety). Bought once,
+	 * one used at a time per ship, chosen in Customize.
+	 */
+	SHAPE("Ship look"),
+	/**
 	 * Item System (Team CS) equipped item. Bought once (no levels), on as
 	 * soon as it is bought, switched on/off in Customize. Only one upgrade
 	 * can be on at once.
