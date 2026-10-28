@@ -173,9 +173,11 @@ public class ScoreScreen extends Screen {
 
 		drawManager.drawGameOver(this, this.inputDelay.checkFinished(),
 				this.isNewRecord);
+		// No shots fired means 0% accuracy, not 0 / 0 = NaN.
+		float accuracy = this.bulletsShot > 0
+				? (float) this.shipsDestroyed / this.bulletsShot : 0f;
 		drawManager.drawResults(this, this.score, this.livesRemaining,
-				this.shipsDestroyed, (float) this.shipsDestroyed
-						/ this.bulletsShot, this.isNewRecord);
+				this.shipsDestroyed, accuracy, this.isNewRecord);
 
 		if (this.isNewRecord)
 			drawManager.drawNameInput(this, this.name, this.nameCharSelected);
