@@ -35,9 +35,7 @@ In Endless Mode, the player's objective is to survive for as long as possible an
 
 The difficulty of Endless Mode will increase over time.
 
-A boss will appear when the player survives for **90 seconds** or defeats **30 enemies**, whichever condition is satisfied first. After the boss is defeated, the boss trigger conditions will reset.
-
-Defeating an Endless Mode boss will provide one randomly selected upgrade from a predefined reward list.
+The current Endless implementation uses **a boss encounter every fifth wave** and **a choice of one of three rewards after every third cleared wave**, with one reroll per reward checkpoint. These rules replace the initial 90-second/30-kill trigger proposal. The release review must confirm this change and the QA-entry policy before approval.
 
 The exact balance values may be adjusted during development and playtesting while maintaining the progression rules defined in this document.
 
@@ -147,38 +145,18 @@ The purpose of this system is to provide a smooth difficulty progression so that
 
 ### 5. Endless Mode Boss and Reward System
 
-In Endless Mode, difficulty will continue to increase based on survival time.
+The implementation submitted in KFC PR #30 uses the following rules. The Endless owner has reported a successful playtest of `d251a9c`; the version integrated with the latest course main still needs a real-window regression test before release.
 
-For the initial implementation:
+- Normal access requires clearing campaign Stage 10 (Infinity Void).
+- Waves 5, 10, 15, ... are boss-only encounters using the native mid-boss and final-boss implementations, alternating between the two.
+- Each boss encounter starts with a safe three-second introduction showing its name, maximum health and damage per hit.
+- After every third cleared wave, the player chooses exactly one of three rewards. One reroll is available per checkpoint. Rewards include permanent upgrades and existing items; boss defeat does not independently grant a second upgrade choice.
+- Difficulty increases with survival and progression; the concrete scaling is implemented in `EndlessMode.Run`. The previous fixed 90-second/30-kill boss trigger and per-boss random-upgrade proposal are superseded by this implementation, subject to release-review acceptance.
+- The selected ship, skin and equipment are read from the shared systems. Generic combat achievements can progress, but Endless waves do not count as campaign completions.
+- In normal runs, coins enter the shared wallet. Diamonds stay pending until the player pauses and presses Q to cash out; dying loses pending diamonds. Endless personal-best records are separate from campaign records.
+- The small lock opens QA access with password `000`. QA uses separate records and does not award normal currency or achievements. This is a test/demo convenience, not a security mechanism; keeping it in the final release remains a review decision.
 
-- Enemy movement speed will increase by approximately **5% every 30 seconds**.
-- The number of enemies appearing in a wave may increase after each completed difficulty interval.
-- The difficulty increase will continue as long as the player survives.
-
-An Endless Mode boss will appear when either of the following conditions is satisfied:
-
-1. The player survives for **90 seconds** after the previous boss encounter, or
-2. The player defeats **30 enemies** after the previous boss encounter.
-
-The condition that is satisfied first will trigger the boss encounter.
-
-After the boss is defeated:
-
-- The survival-time boss counter will reset.
-- The enemy-defeat boss counter will reset.
-- A new boss trigger cycle will begin.
-
-When the player defeats an Endless Mode boss, the player will receive **one randomly selected gameplay upgrade**.
-
-The initial reward pool will include:
-
-- **Attack Damage Upgrade:** Basic attack damage increases by 10%.
-- **Movement Speed Upgrade:** Player movement speed increases by 10%.
-- **Projectile Upgrade:** The number of projectiles fired at once increases by 1.
-
-Only one reward will be granted for each defeated Endless Mode boss.
-
-The specific reward values may be adjusted during playtesting, but boss defeats must always provide a gameplay benefit that helps the player survive the increasing difficulty.
+Acceptance checks: reward checkpoints at waves 3 and 6 (including one-reroll and input guarding); boss waves 5 and 10; pause/resume; connected screens and return; death/retry; QA-save isolation; and normal-run currency/cash-out behavior using a disposable profile. Automated results do not replace these manual checks.
 
 ---
 

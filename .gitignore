@@ -202,3 +202,7 @@ diamonds.tmp
 # Equipped items the player owns, written at runtime (Item System)
 /equipment
 /equipment.tmp
+
+# Personal endless-mode records
+/endless-records.properties
+/endless-test-records.properties
