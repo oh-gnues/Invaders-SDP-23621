@@ -24,6 +24,8 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import engine.Core;
+import engine.soundEngine.Sound;
+import engine.soundEngine.SoundManager;
 import entity.Entity;
 import item.ItemAPI.*;
 
@@ -426,6 +428,7 @@ public final class ItemSystem {
                 logger.info("Item drop disappeared: " + name + ".");
                 break;
             case ITEM_CONVERTED: {
+                SoundManager.getInstance().playSfx(Sound.MENU_CANCEL);
                 ItemInfo magnet = equippedThisRun();
                 int points = magnet == null ? 0 : magnet.magnitude.intValue();
                 hooks.addScore(points);

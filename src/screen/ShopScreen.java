@@ -12,6 +12,8 @@ import engine.DiamondManager;
 import engine.DrawManager.SpriteType;
 import engine.PurchaseManager;
 import engine.PurchaseManager.PurchaseResult;
+import engine.soundEngine.Sound;
+import engine.soundEngine.SoundManager;
 import entity.Ship.ShipType;
 import item.ItemAPI;
 import item.ItemSystem;
@@ -352,12 +354,13 @@ public class ShopScreen extends Screen {
 		PurchaseResult result = purchases.purchase(item, currency,
 				entry.discounted);
 		switch (result) {
-			case SUCCESS:
-				showMessage((item.isRepeatable() ? item.getName() + " is now"
-								+ " level " + purchases.getQuantity(item) + "! "
-								: "Bought " + item.getName() + "! ") + afterBuying(item),
-						Color.GREEN);
-				break;
+            case SUCCESS:
+                SoundManager.getInstance().playSfx(Sound.PURCHASE);
+                showMessage((item.isRepeatable() ? item.getName() + " is now"
+                                + " level " + purchases.getQuantity(item) + "! "
+                                : "Bought " + item.getName() + "! ") + afterBuying(item),
+                        Color.GREEN);
+                break;
 			case INSUFFICIENT_FUNDS:
 				showMessage("Not enough " + currency.getLabel() + " (need "
 						+ price + ").", TOO_EXPENSIVE);
