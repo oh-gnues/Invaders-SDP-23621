@@ -29,8 +29,13 @@ Our team focuses on developing the Records & Achievements System for Space Invad
   - **Items Unlocked** — Bronze: 10% of items unlocked. Silver: 50%. Gold: 100%.
   - **Total Enemies Killed (lifetime)** — Bronze: 100. Silver: 500. Gold: 1,000.
   - **Currency Collected** — Bronze/Silver/Gold thresholds TBD, pending confirmation with Currency team on whether this is a lifetime total or per-run amount.
-- Non-tiered achievements (5): defeat the first enemy, unlock endless mode, beat level 10 with every ship model, beat the game using the starter (weakest) ship, [5th TBD].
-- Hidden achievements (5): unlock all other achievements (normal + hidden), [4 more TBD].
+- Non-tiered achievements:
+  - defeat the first enemy
+  - unlock endless mode
+  - beat level 10 with every ship model
+  -beat the game using the starter (weakest) ship
+- Hidden achievements:
+  - unlock all other achievements (normal + hidden)
 
 
 ## Dependencies on Other Teams
@@ -38,11 +43,8 @@ Our team focuses on developing the Records & Achievements System for Space Invad
 ### 1. Level Design System (KFC)
 Need level count and endless-mode existence confirmed to implement "beat level 10 with every ship model" and endless-mode achievements.
 
-### 2. Sound Effects (Hanyang Space)
-Need a callback/hook point to trigger a sound effect the moment `AchievementManager` unlocks an achievement.
-
-### 3. Coin System (GOG)
+### 2. Coin System (GOG)
 Need a public method to add coins (e.g. `addCoins(int amount)`) for achievement rewards, and a way to query total currency collected for the Currency Collected tier.
 
-### 4. Main Menu (Hello World)
+### 3. Main Menu (Hello World)
 Main Menu team requested an Achievements tab — need to expose a method that returns the current unlock status list for display.

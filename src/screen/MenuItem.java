@@ -8,24 +8,24 @@ package screen;
  * are independent, so an item can be moved on screen without changing its
  * code, and Exit can stay last while keeping code 0.
  *
- * Each screen already has its line here, disabled. To add yours, flip
- * enabled to true in the same PR as your Core case and your Screen class. A
- * screen that is not listed needs a code assigned first; then add one line.
+ * To add a screen, add one line here with an unused code, plus a Core case
+ * for that code and the Screen class. An item with enabled set to false is
+ * drawn dark grey and cannot be chosen.
  */
 public enum MenuItem {
 
 	/** Starts the game. */
 	PLAY("Play", 2, true),
-	/** Shows the high score table. */
-	HIGH_SCORES("High scores", 3, true),
-	/** Settings screen. */
-	SETTINGS("Settings", 4, true),
+	/** Customize screen (ship selection). */
+	SHIP_SELECT("Customize", 7, true),
 	/** Shop screen. */
 	SHOP("Shop", 5, true),
 	/** Achievements screen. */
 	ACHIEVEMENTS("Achievements", 6, true),
-	/** Ship selection screen. */
-	SHIP_SELECT("Ship select", 7, true),
+	/** Shows the high score table. */
+	HIGH_SCORES("High scores", 3, true),
+	/** Settings screen. */
+	SETTINGS("Settings", 4, true),
 	/** Closes the game. */
 	EXIT("Exit", 0, true);
 

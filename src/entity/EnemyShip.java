@@ -5,6 +5,8 @@ import java.awt.Color;
 import engine.Cooldown;
 import engine.Core;
 import engine.DrawManager.SpriteType;
+import engine.soundEngine.Sound;
+import engine.soundEngine.SoundManager;
 
 /**
  * Implements a enemy ship, to be destroyed by the player.
@@ -27,8 +29,18 @@ public class EnemyShip extends Entity {
 	private Cooldown animationCooldown;
 	/** Checks if the ship has been hit by a bullet. */
 	private boolean isDestroyed;
+	/** Remaining health; ordinary and bonus ships start with one hit point. */
+	private int health = 1;
 	/** Values of the ship, in points, when destroyed. */
 	private int pointValue;
+	/** How long the explosion flickers after a hit, in milliseconds. */
+	private static final int FLICKER_TIME = 150;
+	/** Time between each flicker on/off switch, in milliseconds. */
+	private static final int FLICKER_INTERVAL = 50;
+	/** How long the explosion takes to fade away, in milliseconds. */
+	private static final int FADE_TIME = 300;
+	/** Moment the ship was destroyed. */
+	private long destroyedAt;
 
 	/**
 	 * Constructor, establishes the ship's properties.
@@ -65,6 +77,35 @@ public class EnemyShip extends Entity {
 			this.pointValue = 0;
 			break;
 		}
+	}
+
+	/** Creates an ordinary enemy with configurable health and the same sprite. */
+	public EnemyShip(final int positionX, final int positionY,
+			final SpriteType spriteType, final int health) {
+		this(positionX, positionY, spriteType);
+		if (health < 1)
+			throw new IllegalArgumentException("Enemy health must be positive");
+		this.health = health;
+		if (health > 1)
+			setColor(Color.YELLOW);
+	}
+
+	/**
+	 * Applies damage and reports a lethal hit. The formation/caller still owns
+	 * destruction and rewards, so a surviving hit cannot remove a shooter.
+	 */
+	public final boolean takeDamage(final int damage) {
+		if (damage <= 0 || this.isDestroyed || this.health == 0)
+			return false;
+		this.health = Math.max(0, this.health - damage);
+		if (this.health == 1)
+			setColor(Color.WHITE);
+		return this.health == 0;
+	}
+
+	/** @return Remaining hit points. */
+	public final int getHealth() {
+		return this.health;
 	}
 
 	/**
@@ -137,13 +178,37 @@ public class EnemyShip extends Entity {
 	 * Destroys the ship, causing an explosion.
 	 */
 	public final void destroy() {
-		this.isDestroyed = true;
-		this.spriteType = SpriteType.Explosion;
+		if (!this.isDestroyed) {
+			this.health = 0;
+			this.isDestroyed = true;
+			this.spriteType = SpriteType.Explosion;
+			this.destroyedAt = System.currentTimeMillis();
+			SoundManager.getInstance().playSfx(Sound.ENEMY_EXPLOSION);
+		}
+	}
+	
+	/** Opacity: 1 = visible, 0 = invisible. Flickers first, then fades. */
+	public final float getAlpha() {
+		if (!this.isDestroyed)
+			return 1f;
+		long elapsed = System.currentTimeMillis() - this.destroyedAt;
+		if (elapsed < FLICKER_TIME)
+			return (elapsed / FLICKER_INTERVAL) % 2 == 0 ? 1f : 0.2f;
+		long fading = elapsed - FLICKER_TIME;
+		if (fading >= FADE_TIME)
+			return 0f;
+		return 1f - fading / (float) FADE_TIME;
+	}
+	
+	/** True when the flicker + fade animation is over. */
+	public final boolean isFadeFinished() {
+		return this.isDestroyed && System.currentTimeMillis()
+			- this.destroyedAt >= FLICKER_TIME + FADE_TIME;
 	}
 
 	/**
 	 * Checks if the ship has been destroyed.
-	 * 
+	 *
 	 * @return True if the ship has been destroyed.
 	 */
 	public final boolean isDestroyed() {
